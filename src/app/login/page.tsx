@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
 const inputClass =
@@ -16,7 +17,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -25,35 +25,31 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error: loginError } = await supabase.auth.signInWithPassword({
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (loginError) {
-      setError(loginError.message);
+    if (loginError || !data.user) {
+      setError(loginError?.message || "No pudimos iniciar sesión.");
       setLoading(false);
       return;
     }
 
-    router.push("/dashboard");
-  };
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select(PROFILE_SELECT)
+      .eq("id", data.user.id)
+      .maybeSingle();
 
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    setError(null);
-
-    const { error: googleError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-      },
-    });
-
-    if (googleError) {
-      setError(googleError.message);
-      setGoogleLoading(false);
+    if (profileError) {
+      setError(profileError.message);
+      setLoading(false);
+      return;
     }
+
+    const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
+    router.push(isProfileComplete(profile) ? redirectTo || "/dashboard" : "/register/completion");
   };
 
   return (
@@ -92,29 +88,6 @@ export default function LoginPage() {
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
           {loading ? "Ingresando..." : "Ingresar"}
-        </button>
-
-        <div className="relative py-1">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-neutral-900 px-2 text-neutral-500">o continuá con</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          disabled={googleLoading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-60"
-        >
-          {googleLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <span className="flex size-5 items-center justify-center rounded-full bg-white text-xs font-black text-neutral-950">G</span>
-          )}
-          {googleLoading ? "Conectando..." : "Continuar con Google"}
         </button>
 
         <div className="flex items-center justify-between gap-4 pt-1 text-sm">

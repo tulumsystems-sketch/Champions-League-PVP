@@ -13,12 +13,11 @@ const inputClass =
   "w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [uid, setUid] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
@@ -29,13 +28,19 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
 
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: name,
-          uid_freefire: uid,
+          nickname,
+          provider: "email",
         },
       },
     });
@@ -47,42 +52,29 @@ export default function RegisterPage() {
     }
 
     if (data.user) {
-      // TODO: Replace this client-side insert with a server-side profile creation flow once RLS/schema are final.
       const { error: profileError } = await supabase.from("profiles").insert([
         {
           id: data.user.id,
-          full_name: name,
-          uid_freefire: uid,
           email,
-          coins: 0,
+          provider: "email",
+          nickname,
+          avatar_url: null,
+          freefire_uid: null,
+          status: "active",
+          created_at: new Date().toISOString(),
         },
       ]);
 
       if (profileError) {
-        console.warn("Profile insert failed:", profileError.message);
+        setError(profileError.message);
+        setLoading(false);
+        return;
       }
     }
 
-    setSuccess("Registro exitoso. Revisá tu email para confirmar la cuenta.");
+    setSuccess("Registro creado. Completá tu UID de Free Fire para activar tu perfil competitivo.");
     setLoading(false);
-    window.setTimeout(() => router.push("/login"), 900);
-  };
-
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    setError(null);
-
-    const { error: googleError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/register/completion`,
-      },
-    });
-
-    if (googleError) {
-      setError(googleError.message);
-      setGoogleLoading(false);
-    }
+    window.setTimeout(() => router.push("/register/completion"), 700);
   };
 
   return (
@@ -96,13 +88,11 @@ export default function RegisterPage() {
         )}
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">
-            Nombre <span className="text-neutral-500">(en Free Fire)</span>
-          </span>
+          <span className="text-sm font-medium text-neutral-300">Nickname</span>
           <input
             type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            value={nickname}
+            onChange={(event) => setNickname(event.target.value)}
             required
             placeholder="Tu nombre de jugador"
             className={inputClass}
@@ -135,15 +125,14 @@ export default function RegisterPage() {
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">
-            UID Free Fire <span className="text-neutral-500">(tu ID de jugador)</span>
-          </span>
+          <span className="text-sm font-medium text-neutral-300">Confirmar contraseña</span>
           <input
-            type="text"
-            value={uid}
-            onChange={(event) => setUid(event.target.value)}
+            type="password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
             required
-            placeholder="Ej: 234567890"
+            minLength={6}
+            placeholder="Repetí la contraseña"
             className={inputClass}
           />
         </label>
@@ -155,29 +144,6 @@ export default function RegisterPage() {
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
           {loading ? "Registrando..." : "Crear cuenta"}
-        </button>
-
-        <div className="relative py-1">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-neutral-900 px-2 text-neutral-500">o registrate con</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleSignup}
-          disabled={googleLoading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-white/15 disabled:opacity-60"
-        >
-          {googleLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <span className="flex size-5 items-center justify-center rounded-full bg-white text-xs font-black text-neutral-950">G</span>
-          )}
-          {googleLoading ? "Conectando..." : "Continuar con Google"}
         </button>
 
         <p className="pt-1 text-center text-sm text-neutral-500">

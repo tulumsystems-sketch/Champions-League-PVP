@@ -1,9 +1,10 @@
+"use client";
+
 import {
   Activity,
-  Coins,
+  AlertCircle,
   Crosshair,
-  Crown,
-  Gamepad2,
+  Mail,
   ShieldCheck,
   Trophy,
   UserRound,
@@ -11,6 +12,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { ChallengeCard } from "@/components/presentation/ChallengeCard";
 import { FeatureCard } from "@/components/presentation/FeatureCard";
 import { PlayerProfileCard } from "@/components/presentation/PlayerProfileCard";
@@ -18,10 +20,10 @@ import { RankingTable } from "@/components/presentation/RankingTable";
 import { StatCard } from "@/components/presentation/StatCard";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import { GamingShell } from "@/components/GamingShell";
-import { accessCards, activityItems, challengeCards, playerProfile, playerStats, rankingRows } from "@/lib/presentation-data";
+import { accessCards, activityItems, challengeCards, rankingRows } from "@/lib/presentation-data";
+import type { AuthenticatedProfile } from "@/lib/profile";
+import { getProfileEmail, getProfileName, getProfileStatus, getProfileUid } from "@/lib/profile";
 
-const statIcons = [Gamepad2, Crown, Crosshair, Trophy];
-const statTones = ["orange", "emerald", "red", "cyan"] as const;
 const accessIcons = [Crosshair, UsersRound, Trophy, WalletCards, UserRound];
 
 const roomCards = [
@@ -32,6 +34,20 @@ const roomCards = [
 
 export default function DashboardPage() {
   return (
+    <AuthenticatedLayout requireCompleteProfile={false}>
+      {(auth) => <DashboardContent auth={auth} />}
+    </AuthenticatedLayout>
+  );
+}
+
+function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
+  const displayName = getProfileName(auth.profile, auth.user);
+  const email = getProfileEmail(auth.profile, auth.user);
+  const freefireUid = getProfileUid(auth.profile);
+  const status = getProfileStatus(auth.profile);
+  const hasFreefireUid = Boolean(auth.profile?.freefire_uid);
+
+  return (
     <GamingShell>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <section className="grid gap-5 lg:grid-cols-[1fr_360px]">
@@ -40,36 +56,42 @@ export default function DashboardPage() {
               <div>
                 <StatusBadge tone="orange">Arena del jugador</StatusBadge>
                 <h1 className="mt-4 text-4xl font-black tracking-tight text-white md:text-5xl">
-                  Bienvenido, {playerProfile.nickname}
+                  Bienvenido, {displayName}
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
-                  Dashboard con balance, estadísticas, desafíos, salas privadas y ranking semanal para presentar el producto.
+                  Tu perfil competitivo se alimenta desde Supabase y queda listo para desafíos, salas privadas y ranking.
                 </p>
               </div>
-              <div className="rounded-lg border border-yellow-400/20 bg-yellow-500/10 p-4 text-left md:text-right">
-                <div className="flex items-center gap-2 text-yellow-100 md:justify-end">
-                  <Coins className="size-5" />
-                  <span className="text-sm font-bold uppercase tracking-[0.16em]">Balance</span>
+              <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-4 text-left md:text-right">
+                <div className="flex items-center gap-2 text-emerald-100 md:justify-end">
+                  <ShieldCheck className="size-5" />
+                  <span className="text-sm font-bold uppercase tracking-[0.16em]">Estado</span>
                 </div>
-                <p className="mt-2 text-4xl font-black text-white">760</p>
-                <p className="text-sm text-yellow-100/70">Coins disponibles</p>
+                <p className="mt-2 text-3xl font-black text-white">{status}</p>
+                <p className="text-sm text-emerald-100/70">Perfil Supabase</p>
               </div>
             </div>
           </div>
-          <PlayerProfileCard />
+          <PlayerProfileCard auth={auth} />
         </section>
 
+        {!hasFreefireUid && (
+          <div className="mt-5 flex items-start gap-3 rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-4 text-cyan-100">
+            <AlertCircle className="mt-0.5 size-5 shrink-0" />
+            <div>
+              <p className="font-bold">Completá tu UID de Free Fire para activar tu perfil competitivo</p>
+              <p className="mt-1 text-sm text-cyan-100/75">
+                Podés completarlo desde la pantalla de completar perfil o editarlo en tu perfil.
+              </p>
+            </div>
+          </div>
+        )}
+
         <section className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {playerStats.map((stat, index) => (
-            <StatCard
-              key={stat.label}
-              icon={statIcons[index]}
-              label={stat.label}
-              value={stat.value}
-              meta={stat.meta}
-              tone={statTones[index]}
-            />
-          ))}
+          <StatCard icon={UserRound} label="Nickname" value={displayName} meta="Dato real de profiles" tone="orange" />
+          <StatCard icon={Mail} label="Email" value={email} meta="Dato real de Auth/profiles" tone="cyan" />
+          <StatCard icon={Crosshair} label="UID Free Fire" value={freefireUid} meta={hasFreefireUid ? "Vinculado" : "Pendiente"} tone="red" />
+          <StatCard icon={ShieldCheck} label="Status" value={status} meta="Estado de cuenta" tone="emerald" />
         </section>
 
         <section className="mt-8">
@@ -162,12 +184,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-cyan-400/20 bg-cyan-500/10 p-3">
-              <ShieldCheck className="mt-0.5 size-5 text-cyan-200" />
-              <p className="text-sm leading-6 text-cyan-100/75">
-                La wallet es visual por ahora. Los movimientos se conectarán cuando exista la lógica real de Coins.
-              </p>
             </div>
           </aside>
         </section>
