@@ -7,6 +7,13 @@ export type PlayerProfile = {
   nickname: string | null;
   avatar_url: string | null;
   freefire_uid: string | null;
+  freefire_region: string | null;
+  freefire_level: number | null;
+  freefire_likes: number | null;
+  freefire_rank: number | null;
+  clan_name: string | null;
+  signature: string | null;
+  role: string | null;
   status: string | null;
   created_at: string | null;
 };
@@ -16,7 +23,8 @@ export type AuthenticatedProfile = {
   profile: PlayerProfile | null;
 };
 
-export const PROFILE_SELECT = "id, email, provider, nickname, avatar_url, freefire_uid, status, created_at";
+export const PROFILE_SELECT =
+  "id, email, provider, nickname, avatar_url, freefire_uid, freefire_region, freefire_level, freefire_likes, freefire_rank, clan_name, signature, role, status, created_at";
 
 export function isProfileComplete(profile: PlayerProfile | null) {
   return Boolean(profile?.freefire_uid?.trim());
@@ -36,6 +44,19 @@ export function getProfileUid(profile: PlayerProfile | null) {
 
 export function getProfileStatus(profile: PlayerProfile | null) {
   return profile?.status || "active";
+}
+
+export function isProfileActive(profile: PlayerProfile | null) {
+  return getProfileStatus(profile) === "active";
+}
+
+export function isAdmin(profile: PlayerProfile | null) {
+  return profile?.role === "admin";
+}
+
+export function isDuplicateUidError(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes("profiles_freefire_uid_unique") || normalized.includes("duplicate key");
 }
 
 export function getInitials(name: string) {

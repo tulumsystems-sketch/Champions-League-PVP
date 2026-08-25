@@ -68,7 +68,7 @@ export const accessCards = [
   {
     title: "Desafíos",
     description: "Competencias temporales con premios en Coins.",
-    href: "/dashboard#desafios",
+    href: "/challenges",
     accent: "orange" as const,
   },
   {
@@ -80,13 +80,13 @@ export const accessCards = [
   {
     title: "Ranking",
     description: "Medí tu progreso semanal contra otros jugadores.",
-    href: "/dashboard#ranking",
+    href: "/ranking",
     accent: "emerald" as const,
   },
   {
     title: "Wallet",
     description: "Balance, movimientos y premios de la arena.",
-    href: "/dashboard#wallet",
+    href: "/wallet",
     accent: "yellow" as const,
   },
   {

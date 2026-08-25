@@ -7,13 +7,22 @@ import { useRouter } from "next/navigation";
 import { Loader2, UserPlus } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
+import { FreeFireUidLookup } from "@/components/profile/FreeFireUidLookup";
+import { assertPlayableFreeFireAccount } from "@/lib/free-fire/guard";
+import { getFreeFireAvatarUrl, type CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
+import { normalizeFreeFireRegion } from "@/lib/free-fire/regions";
+import { persistFreeFireSnapshot } from "@/lib/player-stats";
+import { isDuplicateUidError } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
 const inputClass =
   "w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
 
 export default function RegisterPage() {
-  const [nickname, setNickname] = useState("");
+  const [freefireUid, setFreefireUid] = useState("");
+  const [freefireRegion, setFreefireRegion] = useState("br");
+  const [verifiedPlayer, setVerifiedPlayer] = useState<CommunityPlayerInfo | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,12 +43,26 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!freefireUid.trim() || !verifiedPlayer) {
+      setError("Consultá tu UID de Free Fire y esperá la ficha del jugador antes de crear la cuenta.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await assertPlayableFreeFireAccount(freefireUid);
+    } catch (uidError) {
+      setError(uidError instanceof Error ? uidError.message : "Ese UID de Free Fire no se puede usar.");
+      setLoading(false);
+      return;
+    }
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          nickname,
+          freefire_uid: freefireUid.trim(),
           provider: "email",
         },
       },
@@ -52,33 +75,55 @@ export default function RegisterPage() {
     }
 
     if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").insert([
-        {
-          id: data.user.id,
-          email,
-          provider: "email",
-          nickname,
-          avatar_url: null,
-          freefire_uid: null,
-          status: "active",
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const nickname = verifiedPlayer.nickname?.trim() || email.split("@")[0];
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        [
+          {
+            id: data.user.id,
+            email,
+            provider: "email",
+            nickname,
+            freefire_uid: freefireUid.trim(),
+            freefire_region: normalizeFreeFireRegion(freefireRegion),
+            avatar_url: getFreeFireAvatarUrl(verifiedPlayer.avatarId),
+            status: "active",
+            created_at: new Date().toISOString(),
+          },
+        ],
+        { onConflict: "id" },
+      );
 
       if (profileError) {
-        setError(profileError.message);
+        setError(
+          isDuplicateUidError(profileError.message)
+            ? "Ese UID de Free Fire ya está vinculado a otra cuenta."
+            : profileError.message,
+        );
         setLoading(false);
         return;
       }
+
+      try {
+        await persistFreeFireSnapshot({
+          userId: data.user.id,
+          uid: freefireUid.trim(),
+          region: normalizeFreeFireRegion(freefireRegion),
+          info: verifiedPlayer,
+          stats: null,
+          avatarUrl: getFreeFireAvatarUrl(verifiedPlayer.avatarId),
+        });
+      } catch {
+        // La cuenta ya está creada; las stats se pueden sincronizar después desde Perfil.
+      }
     }
 
-    setSuccess("Registro creado. Completá tu UID de Free Fire para activar tu perfil competitivo.");
+    setSuccess("Cuenta creada correctamente. Redirigiendo...");
     setLoading(false);
-    window.setTimeout(() => router.push("/register/completion"), 700);
+    window.setTimeout(() => router.push("/dashboard"), 700);
   };
 
   return (
-    <AuthFormWrapper title="Crear cuenta" subtitle="Registrate y dejá listo tu perfil competitivo para la arena.">
+    <AuthFormWrapper title="Crear cuenta" subtitle="Validamos tu UID de Free Fire y después entras con correo o Google.">
       <form onSubmit={handleRegister} className="space-y-4">
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
         {success && (
@@ -87,20 +132,27 @@ export default function RegisterPage() {
           </p>
         )}
 
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">Nickname</span>
-          <input
-            type="text"
-            value={nickname}
-            onChange={(event) => setNickname(event.target.value)}
-            required
-            placeholder="Tu nombre de jugador"
-            className={inputClass}
-          />
-        </label>
+        <GoogleAuthButton />
+        <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">o con email</p>
+
+        <FreeFireUidLookup
+          uid={freefireUid}
+          region={freefireRegion}
+          persistOnLoad={false}
+          onUidChange={(value) => {
+            setFreefireUid(value);
+            setVerifiedPlayer(null);
+          }}
+          onRegionChange={(value) => {
+            setFreefireRegion(value);
+            setVerifiedPlayer(null);
+          }}
+          onPlayerLoaded={(info) => setVerifiedPlayer(info)}
+          inputClassName={inputClass}
+        />
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">Email</span>
+          <span className="text-sm font-medium text-neutral-300">Correo</span>
           <input
             type="email"
             value={email}
@@ -125,14 +177,14 @@ export default function RegisterPage() {
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">Confirmar contraseña</span>
+          <span className="text-sm font-medium text-neutral-300">Repetir contraseña</span>
           <input
             type="password"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             required
             minLength={6}
-            placeholder="Repetí la contraseña"
+            placeholder="Repetir contraseña"
             className={inputClass}
           />
         </label>

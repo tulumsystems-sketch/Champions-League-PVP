@@ -28,7 +28,7 @@ const landingFeatures = [
   },
   {
     title: "Salas privadas",
-    description: "Modos 1 vs 1, 2 vs 2 y squads con entrada en Coins y validación de resultado.",
+    description: "Modos 1 vs 1, 2 vs 2, 3 vs 3 y 4 vs 4 con entrada en Coins y validación de resultado.",
     href: "/dashboard#salas",
     accent: "cyan" as const,
     icon: UsersRound,
@@ -36,7 +36,7 @@ const landingFeatures = [
   {
     title: "Ranking competitivo",
     description: "Leaderboard semanal para destacar victorias, puntos y rendimiento real.",
-    href: "/dashboard#ranking",
+    href: "/ranking",
     accent: "emerald" as const,
     icon: Trophy,
   },

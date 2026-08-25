@@ -37,7 +37,15 @@ function createSafeFallbackClient() {
 }
 
 export const supabase =
-  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : createSafeFallbackClient();
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          detectSessionInUrl: true,
+          flowType: "pkce",
+        },
+      })
+    : createSafeFallbackClient();
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(

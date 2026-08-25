@@ -1,23 +1,48 @@
 "use client";
 
-import type { FormEvent } from "react";
-import { useState } from "react";
-import { BadgeCheck, Loader2, Save, ShieldCheck } from "lucide-react";
+import type { FormEvent, ReactNode } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Coins, Loader2, Save, ShieldCheck, UserCheck } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
-import { GamingShell } from "@/components/GamingShell";
+import type { CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
+import { getFreeFireAvatarUrl } from "@/lib/free-fire/providers/community-api-provider";
+import { normalizeFreeFireRegion } from "@/lib/free-fire/regions";
 import type { AuthenticatedProfile } from "@/lib/profile";
 import { getInitials, getProfileEmail, getProfileName, getProfileStatus } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
+import { FreeFireUidLookup } from "@/components/profile/FreeFireUidLookup";
+import { getStoredCareerStats, isFreeFireSnapshotStale, persistFreeFireSnapshot } from "@/lib/player-stats";
+import { fetchAndSyncPlayerFreeFireStats } from "@/app/actions/free-fire";
+import {
+  challengePlaceLabel,
+  formatHistoryDate,
+  getMyChallengeHistory,
+  getMyMatchHistory,
+  getPlatformRank,
+  matchResultLabel,
+  roomStatusLabel,
+  walletMoveLabel,
+  type ChallengeHistoryItem,
+  type MatchHistoryItem,
+  type PlatformRank,
+} from "@/lib/arena-stats";
+import { getOrCreateWallet, getWalletTransactions, type Wallet, type WalletTransaction } from "@/lib/wallet";
 
 const inputClass =
-  "w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
+  "w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
 
 export default function ProfilePage() {
   return (
     <AuthenticatedLayout requireCompleteProfile={false}>
-      {(auth) => <ProfileContent auth={auth} />}
+      {(auth) => (
+        <AppLayout auth={auth}>
+          <ProfileContent auth={auth} />
+        </AppLayout>
+      )}
     </AuthenticatedLayout>
   );
 }
@@ -25,15 +50,86 @@ export default function ProfilePage() {
 function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
   const [nickname, setNickname] = useState(getProfileName(auth.profile, auth.user));
   const [freefireUid, setFreefireUid] = useState(auth.profile?.freefire_uid || "");
+  const [freefireRegion, setFreefireRegion] = useState(auth.profile?.freefire_region || "br");
   const [avatarUrl, setAvatarUrl] = useState(auth.profile?.avatar_url || "");
+  const [verifiedPlayer, setVerifiedPlayer] = useState<CommunityPlayerInfo | null>(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [arena, setArena] = useState<{
+    wallet: Wallet | null;
+    rank: PlatformRank | null;
+    matches: MatchHistoryItem[];
+    challenges: ChallengeHistoryItem[];
+    movements: WalletTransaction[];
+  }>({ wallet: null, rank: null, matches: [], challenges: [], movements: [] });
 
   const email = getProfileEmail(auth.profile, auth.user);
   const status = getProfileStatus(auth.profile);
   const initials = getInitials(nickname) || "P";
   const visibleFreefireUid = freefireUid.trim() || "Pendiente";
+
+  const displayAvatarUrl = getFreeFireAvatarUrl(verifiedPlayer?.avatarId) || avatarUrl;
+
+  useEffect(() => {
+    let active = true;
+
+    const loadArena = async () => {
+      try {
+        const wallet = await getOrCreateWallet(auth.user.id);
+        const [rank, matches, challenges, movements] = await Promise.all([
+          getPlatformRank(auth.user.id),
+          getMyMatchHistory(auth.user.id),
+          getMyChallengeHistory(auth.user.id),
+          getWalletTransactions(wallet.id, 8),
+        ]);
+        if (!active) return;
+        setArena({ wallet, rank, matches, challenges, movements });
+      } catch {
+        if (!active) return;
+      }
+    };
+
+    loadArena();
+    return () => {
+      active = false;
+    };
+  }, [auth.user.id]);
+
+  useEffect(() => {
+    if (!auth.profile?.freefire_uid) return;
+    let active = true;
+
+    const fetchLive = async () => {
+      const region = auth.profile?.freefire_region || "br";
+      const stored = await getStoredCareerStats(auth.user.id).catch(() => null);
+      if (!isFreeFireSnapshotStale(stored?.updatedAt)) {
+        return;
+      }
+
+      const res = await fetchAndSyncPlayerFreeFireStats(auth.profile!.freefire_uid!, region);
+      if (!active) return;
+      if (res.ok) {
+        setVerifiedPlayer(res.info);
+        await persistFreeFireSnapshot({
+          userId: auth.user.id,
+          uid: auth.profile!.freefire_uid!,
+          region,
+          info: res.info,
+          stats: res.stats,
+          avatarUrl: getFreeFireAvatarUrl(res.info.avatarId),
+        });
+        const avatar = getFreeFireAvatarUrl(res.info.avatarId);
+        if (avatar) setAvatarUrl(avatar);
+      }
+    };
+
+    fetchLive();
+
+    return () => {
+      active = false;
+    };
+  }, [auth.profile, auth.user.id]);
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -41,14 +137,23 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
     setSuccess(null);
     setError(null);
 
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        nickname: nickname.trim(),
-        freefire_uid: freefireUid.trim() || null,
-        avatar_url: avatarUrl.trim() || null,
-      })
-      .eq("id", auth.user.id);
+    const resolvedNickname = verifiedPlayer?.nickname?.trim() || nickname.trim();
+    const resolvedAvatar = getFreeFireAvatarUrl(verifiedPlayer?.avatarId) || avatarUrl.trim() || null;
+
+    const updatePayload: Record<string, unknown> = {
+      nickname: resolvedNickname,
+      freefire_uid: freefireUid.trim() || null,
+      avatar_url: resolvedAvatar,
+      freefire_region: normalizeFreeFireRegion(freefireRegion),
+      freefire_level: verifiedPlayer?.level ?? auth.profile?.freefire_level ?? 0,
+      freefire_likes: verifiedPlayer?.liked ?? auth.profile?.freefire_likes ?? 0,
+      freefire_rank: verifiedPlayer?.rank ?? auth.profile?.freefire_rank ?? 0,
+      clan_name: verifiedPlayer?.clanName ?? auth.profile?.clan_name ?? null,
+      signature: verifiedPlayer?.signature ?? auth.profile?.signature ?? null,
+    };
+
+    const update = await supabase.from("profiles").update(updatePayload).eq("id", auth.user.id);
+    const updateError = update.error;
 
     if (updateError) {
       setError(updateError.message);
@@ -56,124 +161,279 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
       return;
     }
 
-    setSuccess("Perfil actualizado correctamente.");
+    if (resolvedNickname !== nickname) {
+      setNickname(resolvedNickname);
+    }
+    if (resolvedAvatar && resolvedAvatar !== avatarUrl) {
+      setAvatarUrl(resolvedAvatar);
+    }
+
+    setSuccess("¡UID vinculado y datos sincronizados con éxito desde la API de Free Fire!");
     setSaving(false);
   };
 
   return (
-    <GamingShell>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <section className="grid gap-5 lg:grid-cols-[360px_1fr]">
-          <aside className="rounded-lg border border-white/10 bg-neutral-900/85 p-6 shadow-2xl shadow-black/25">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex size-28 items-center justify-center overflow-hidden rounded-lg border border-orange-400/30 bg-gradient-to-br from-orange-500/35 via-cyan-500/20 to-emerald-500/20 text-4xl font-black text-white shadow-xl shadow-orange-950/30">
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={avatarUrl} alt={nickname} className="size-full object-cover" />
-                ) : (
-                  initials
-                )}
-              </div>
-              <StatusBadge tone={status === "active" ? "emerald" : "red"} className="mt-5">
-                {status}
-              </StatusBadge>
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-white">{nickname}</h1>
-              <p className="mt-1 text-sm text-neutral-400">{email}</p>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+      {/* Header Banner */}
+      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-neutral-900 via-neutral-900/90 to-orange-950/40 p-6 md:p-8 shadow-2xl">
+        <StatusBadge tone="orange">Gestión de Cuenta</StatusBadge>
+        <h1 className="mt-3 text-3xl md:text-4xl font-black text-white">Perfil Oficial de Jugador</h1>
+        <p className="mt-2 text-sm text-neutral-400 max-w-2xl">
+          Coins, puesto y historial de esta arena. El UID de Free Fire queda como identidad para jugar, no como ranking.
+        </p>
+      </section>
+
+      <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
+        {/* Left Gamer Card */}
+        <aside className="space-y-6">
+          <div className="rounded-3xl border border-white/10 bg-neutral-900/90 p-6 shadow-2xl backdrop-blur-xl text-center relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-r from-orange-600/40 via-cyan-500/30 to-emerald-500/30" />
+            
+            <div className="relative mx-auto mt-6 flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-orange-400/40 bg-neutral-950 text-4xl font-black text-white shadow-2xl shadow-orange-950/50">
+              {displayAvatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={displayAvatarUrl} alt={nickname} className="size-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
 
-            <div className="mt-6 space-y-3">
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">Free Fire UID</p>
-                <p className="mt-1 font-bold text-white">{visibleFreefireUid}</p>
+            <div className="mt-4">
+              <StatusBadge tone={status === "active" ? "emerald" : "red"}>{status}</StatusBadge>
+              <h2 className="mt-3 text-2xl font-black text-white">
+                {verifiedPlayer?.nickname || nickname || "Jugador Free Fire"}
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1">{email}</p>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+              <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-3">
+                <span className="text-[10px] uppercase font-bold text-orange-300/80">Coins</span>
+                <p className="mt-1 flex items-center gap-1.5 font-black text-white text-sm">
+                  <Coins className="size-3.5 text-orange-300" />
+                  {arena.wallet ? Number(arena.wallet.balance).toLocaleString("es-AR") : "—"}
+                </p>
               </div>
-              <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">Provider</p>
-                <p className="mt-1 font-bold text-cyan-100">{auth.profile?.provider || "email"}</p>
+              <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
+                <span className="text-[10px] uppercase font-bold text-cyan-300/80">Puesto</span>
+                <p className="mt-1 font-black text-white text-sm">
+                  {arena.rank?.rank ? `#${arena.rank.rank}` : "Sin ranking"}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Victorias</span>
+                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.wins ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Participaciones</span>
+                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.participations ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Coins ganadas</span>
+                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.coinsWon ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Puntos</span>
+                <p className="mt-1 font-bold text-orange-200 text-sm">{arena.rank?.points ?? 0}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Free Fire UID</span>
+                <p className="mt-1 font-bold text-white text-sm truncate">{visibleFreefireUid}</p>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+                <span className="text-[10px] uppercase font-bold text-neutral-500">Región</span>
+                <p className="mt-1 font-bold text-cyan-300 text-sm uppercase">{freefireRegion}</p>
               </div>
             </div>
-          </aside>
 
-          <div className="space-y-5">
-            <section className="rounded-lg border border-white/10 bg-neutral-900/85 p-6 shadow-2xl shadow-black/25">
-              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                <div>
-                  <StatusBadge tone="cyan">Perfil Free Fire</StatusBadge>
-                  <h2 className="mt-4 text-3xl font-black tracking-tight text-white">Identidad del jugador</h2>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-400">
-                    Datos reales leídos desde Supabase. El UID Free Fire activa el perfil competitivo.
-                  </p>
-                </div>
-                <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-100">
-                  <div className="flex items-center gap-2 text-sm font-bold">
-                    <BadgeCheck className="size-4" />
-                    {freefireUid ? "UID vinculado" : "UID pendiente"}
-                  </div>
-                </div>
+            <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-left text-xs text-emerald-200 space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+                <UserCheck className="size-4" /> Datos Oficiales de la API
               </div>
-
-              <form onSubmit={handleSave} className="mt-6 grid gap-4">
-                {success && (
-                  <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-200">
-                    {success}
-                  </p>
-                )}
-                {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
-
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium text-neutral-300">Nickname</span>
-                  <input value={nickname} onChange={(event) => setNickname(event.target.value)} required className={inputClass} />
-                </label>
-
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium text-neutral-300">UID Free Fire</span>
-                  <input
-                    value={freefireUid}
-                    onChange={(event) => setFreefireUid(event.target.value)}
-                    placeholder="Ej: 234567890"
-                    className={inputClass}
-                  />
-                </label>
-
-                <label className="space-y-1.5">
-                  <span className="text-sm font-medium text-neutral-300">Avatar URL</span>
-                  <input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(event) => setAvatarUrl(event.target.value)}
-                    placeholder="https://..."
-                    className={inputClass}
-                  />
-                </label>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-500 disabled:opacity-60"
-                >
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                  {saving ? "Guardando..." : "Guardar cambios"}
-                </button>
-              </form>
-            </section>
-
-            <section className="rounded-lg border border-white/10 bg-neutral-900/85 p-6 shadow-2xl shadow-black/25">
-              <div className="flex items-start gap-4">
-                <div className="rounded-lg border border-emerald-400/20 bg-emerald-500/10 p-3 text-emerald-200">
-                  <ShieldCheck className="size-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-white">Estado competitivo</h2>
-                  <p className="mt-2 text-sm leading-6 text-neutral-400">
-                    {freefireUid
-                      ? "Tu UID está guardado en Supabase y listo para futuras integraciones."
-                      : "Agregá tu UID para activar el perfil competitivo."}
-                  </p>
-                </div>
+              <div className="grid grid-cols-2 gap-2 text-neutral-300 pt-1">
+                <div>Nivel: <strong className="text-white">{verifiedPlayer?.level ?? auth.profile?.freefire_level ?? "—"}</strong></div>
+                <div>Likes: <strong className="text-white">{verifiedPlayer?.liked ?? auth.profile?.freefire_likes ?? "—"}</strong></div>
+                <div>Clan: <strong className="text-white">{verifiedPlayer?.clanName || auth.profile?.clan_name || "Sin clan"}</strong></div>
+                <div>Rango: <strong className="text-white">{verifiedPlayer?.rank ?? auth.profile?.freefire_rank ?? "—"}</strong></div>
               </div>
-            </section>
+              {verifiedPlayer?.signature && (
+                <div className="pt-2 border-t border-emerald-500/20 text-[11px] text-neutral-400 italic truncate">
+                  &ldquo;{verifiedPlayer.signature}&rdquo;
+                </div>
+              )}
+            </div>
           </div>
-        </section>
+        </aside>
+
+        {/* Right Form & Verification */}
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-white/10 bg-neutral-900/90 p-6 md:p-8 shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-xl font-black text-white">Vincular UID de Free Fire</h3>
+                <p className="text-xs text-neutral-400">El nickname, avatar y estadísticas se obtienen automáticamente de la API.</p>
+              </div>
+              <ShieldCheck className="size-6 text-orange-400" />
+            </div>
+
+            <form onSubmit={handleSave} className="mt-6 space-y-5">
+              {success && (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">
+                  {success}
+                </div>
+              )}
+              {error && (
+                <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm font-bold text-red-200">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-neutral-300">Nickname (Sincronizado de la API)</label>
+                <input
+                  type="text"
+                  value={verifiedPlayer?.nickname || nickname}
+                  disabled
+                  className="w-full rounded-xl border border-white/10 bg-neutral-950/60 px-4 py-3 text-neutral-400 cursor-not-allowed font-bold"
+                />
+              </div>
+
+              <FreeFireUidLookup
+                uid={freefireUid}
+                region={freefireRegion}
+                userId={auth.user.id}
+                onUidChange={setFreefireUid}
+                onRegionChange={setFreefireRegion}
+                onPlayerLoaded={(info) => setVerifiedPlayer(info)}
+                inputClassName={inputClass}
+              />
+
+              <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4 text-xs text-cyan-200 space-y-1">
+                <p className="font-bold">Nota de seguridad:</p>
+                <p className="text-neutral-400">El avatar y la identidad del jugador están bloqueados a los registros oficiales de Free Fire y no pueden modificarse manualmente.</p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={saving}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-3.5 text-sm font-black text-white shadow-xl shadow-orange-950/50 transition hover:from-orange-500 hover:to-orange-400 disabled:opacity-60"
+              >
+                {saving ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
+                {saving ? "Guardando en Supabase..." : "Vincular y Guardar UID"}
+              </button>
+            </form>
+          </section>
+        </div>
       </div>
-    </GamingShell>
+
+      <section className="space-y-6">
+        <div>
+          <StatusBadge tone="cyan">Historial</StatusBadge>
+          <h2 className="mt-3 text-2xl font-black text-white">Partidas, desafíos y movimientos</h2>
+          <p className="mt-1 text-sm text-neutral-500">Resultado y premio de lo que jugaste en esta plataforma.</p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <HistoryCard
+            title="Salas"
+            empty="Todavía no jugaste salas."
+            action={{ href: "/rooms", label: "Ir a salas" }}
+          >
+            {arena.matches.map((match) => (
+              <div key={match.id} className="rounded-xl border border-white/10 px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-bold text-white">{match.mode} · {match.entryFee} Coins</p>
+                  <StatusBadge tone={match.result === "win" ? "emerald" : match.result === "loss" ? "red" : match.result === "cancelled" ? "neutral" : "orange"}>
+                    {matchResultLabel(match.result)}
+                  </StatusBadge>
+                </div>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {roomStatusLabel(match.status)} · {formatHistoryDate(match.createdAt)}
+                </p>
+                <p className="mt-1 text-xs font-bold text-orange-200">
+                  Premio: {match.prize.toLocaleString("es-AR")} Coins
+                </p>
+              </div>
+            ))}
+          </HistoryCard>
+
+          <HistoryCard
+            title="Desafíos"
+            empty="Todavía no te inscribiste en desafíos."
+            action={{ href: "/challenges", label: "Ir a desafíos" }}
+          >
+            {arena.challenges.map((challenge) => (
+              <Link
+                key={challenge.id}
+                href={`/challenges/${challenge.challengeId}`}
+                className="block rounded-xl border border-white/10 px-3 py-3 transition hover:border-orange-400/40"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-bold text-white truncate">{challenge.title}</p>
+                  <StatusBadge tone={challenge.status === "completed" && challenge.position === 1 ? "emerald" : challenge.status === "cancelled" ? "neutral" : "cyan"}>
+                    {challengePlaceLabel(challenge.position, challenge.status)}
+                  </StatusBadge>
+                </div>
+                <p className="mt-1 text-xs text-neutral-500">
+                  {challenge.metric} · {formatHistoryDate(challenge.createdAt)}
+                </p>
+                <p className="mt-1 text-xs font-bold text-orange-200">
+                  Premio: {challenge.prize.toLocaleString("es-AR")} Coins
+                </p>
+              </Link>
+            ))}
+          </HistoryCard>
+
+          <HistoryCard
+            title="Wallet"
+            empty="Sin movimientos todavía."
+            action={{ href: "/wallet", label: "Ver wallet" }}
+          >
+            {arena.movements.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3">
+                <div>
+                  <p className="font-bold text-white text-sm">{walletMoveLabel(tx)}</p>
+                  <p className="text-xs text-neutral-500">{formatHistoryDate(tx.created_at)}</p>
+                </div>
+                <p className={tx.type === "credit" ? "text-sm font-black text-emerald-300" : "text-sm font-black text-red-300"}>
+                  {tx.type === "credit" ? "+" : "-"}
+                  {Number(tx.amount).toLocaleString("es-AR")}
+                </p>
+              </div>
+            ))}
+          </HistoryCard>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function HistoryCard({
+  title,
+  empty,
+  action,
+  children,
+}: {
+  title: string;
+  empty: string;
+  action: { href: string; label: string };
+  children: ReactNode;
+}) {
+  const isEmpty = !children || (Array.isArray(children) && children.length === 0);
+
+  return (
+    <section className="rounded-3xl border border-white/10 bg-neutral-900/80 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-lg font-black text-white">{title}</h3>
+        <Link href={action.href} className="text-xs font-bold text-orange-300 hover:text-orange-200">
+          {action.label}
+        </Link>
+      </div>
+      {isEmpty ? (
+        <p className="mt-3 text-sm text-neutral-500">{empty}</p>
+      ) : (
+        <div className="mt-3 space-y-2">{children}</div>
+      )}
+    </section>
   );
 }

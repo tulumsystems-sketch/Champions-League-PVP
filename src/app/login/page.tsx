@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
@@ -52,10 +53,14 @@ export default function LoginPage() {
     router.push(isProfileComplete(profile) ? redirectTo || "/dashboard" : "/register/completion");
   };
 
+  const nextPath = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirectTo") || "/dashboard" : "/dashboard";
+
   return (
     <AuthFormWrapper title="Iniciar sesión" subtitle="Ingresá a tu cuenta para competir, revisar Coins y ver rankings.">
       <form onSubmit={handleLogin} className="space-y-4">
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+        <GoogleAuthButton nextPath={nextPath} />
+        <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">o con email</p>
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-neutral-300">Email</span>

@@ -6,20 +6,23 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { GamingShell } from "@/components/GamingShell";
-import { type AuthenticatedProfile, isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
+import { LogoutButton } from "@/components/LogoutButton";
+import { type AuthenticatedProfile, isAdmin, isProfileActive, isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
 type AuthState =
   | { status: "loading" }
   | { status: "ready"; context: AuthenticatedProfile }
+  | { status: "suspended" }
   | { status: "error"; message: string };
 
 type AuthenticatedLayoutProps = {
   children: (context: AuthenticatedProfile) => ReactNode;
   requireCompleteProfile?: boolean;
+  requireAdmin?: boolean;
 };
 
-export function AuthenticatedLayout({ children, requireCompleteProfile = true }: AuthenticatedLayoutProps) {
+export function AuthenticatedLayout({ children, requireCompleteProfile = true, requireAdmin = false }: AuthenticatedLayoutProps) {
   const [state, setState] = useState<AuthState>({ status: "loading" });
   const pathname = usePathname();
   const router = useRouter();
@@ -56,6 +59,11 @@ export function AuthenticatedLayout({ children, requireCompleteProfile = true }:
         return;
       }
 
+      if (!isProfileActive(profile)) {
+        setState({ status: "suspended" });
+        return;
+      }
+
       if (requireCompleteProfile && !isProfileComplete(profile)) {
         const redirectTo = encodeURIComponent(pathname || "/dashboard");
         router.replace(`/register/completion?redirectTo=${redirectTo}`);
@@ -68,6 +76,11 @@ export function AuthenticatedLayout({ children, requireCompleteProfile = true }:
         return;
       }
 
+      if (requireAdmin && !isAdmin(profile)) {
+        router.replace("/dashboard");
+        return;
+      }
+
       setState({ status: "ready", context: { user, profile } });
     };
 
@@ -76,10 +89,29 @@ export function AuthenticatedLayout({ children, requireCompleteProfile = true }:
     return () => {
       active = false;
     };
-  }, [pathname, requireCompleteProfile, router]);
+  }, [pathname, requireCompleteProfile, requireAdmin, router]);
 
   if (state.status === "ready") {
     return <>{children(state.context)}</>;
+  }
+
+  if (state.status === "suspended") {
+    return (
+      <GamingShell>
+        <div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center px-4 py-10">
+          <div className="rounded-lg border border-red-400/20 bg-red-500/10 p-6 text-center shadow-2xl shadow-black/30">
+            <ShieldAlert className="mx-auto size-8 text-red-200" />
+            <h1 className="mt-4 text-xl font-black text-white">Cuenta suspendida</h1>
+            <p className="mt-2 text-sm leading-6 text-red-100/80">
+              Un administrador desactivó tu acceso. No podés jugar, recargar ni retirar hasta que te reactiven.
+            </p>
+            <div className="mt-5 flex justify-center">
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      </GamingShell>
+    );
   }
 
   if (state.status === "error") {

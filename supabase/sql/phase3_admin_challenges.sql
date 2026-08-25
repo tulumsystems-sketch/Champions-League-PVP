@@ -1,0 +1,7 @@
+-- Fase 3 (aplicada en el proyecto live)
+-- Admin crea/edita desafíos, cierra y paga premios, edita datos de cobro.
+-- Pozo = 90% de entradas. 2 jugadores 70/30. 3+ 50/30/20. Menos de 2: reembolso y cancelled.
+--
+-- Tablas: challenges.closed_at, closed_by; challenge_participants.prize_coins; site_settings
+-- RPCs: create_challenge, update_challenge, close_challenge, cancel_challenge, update_payout_settings
+-- Scoring bloqueado si el desafío está completed/cancelled

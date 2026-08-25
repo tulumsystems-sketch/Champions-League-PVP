@@ -1,17 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AppHeader } from "@/components/AppHeader";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Champions League PVP",
@@ -25,8 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-neutral-950 antialiased`}>
-        <AppHeader />
+      <body className="min-h-screen bg-neutral-950 font-sans antialiased">
         <main>{children}</main>
       </body>
     </html>
