@@ -15,7 +15,7 @@ export function ComingSoonCard({
   tone?: "orange" | "cyan" | "emerald" | "yellow";
 }) {
   return (
-    <article className="rounded-lg border border-dashed border-white/15 bg-neutral-900/50 p-5 opacity-90">
+    <article className="arena-panel border-dashed p-5 opacity-90">
       <div className="flex items-start justify-between gap-4">
         <div className="rounded-lg border border-white/10 bg-black/20 p-3 text-neutral-300">
           <Icon className="size-6" />

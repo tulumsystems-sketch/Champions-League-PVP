@@ -64,7 +64,7 @@ export function AdminUsers({ currentUserId }: AdminUsersProps) {
   };
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-5">
+    <section className="arena-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-white">Jugadores</h2>
@@ -202,7 +202,7 @@ function AdjustCoinsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-3 rounded-3xl border border-white/10 bg-neutral-950 p-5">
+      <form onSubmit={handleSubmit} className="arena-panel w-full max-w-md space-y-3 p-5">
         <h3 className="text-lg font-black text-white">Ajuste de Coins</h3>
         <p className="text-sm text-neutral-400">
           {user.nickname || user.email} · saldo actual {user.balance} Coins

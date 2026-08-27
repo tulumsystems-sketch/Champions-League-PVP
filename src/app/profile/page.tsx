@@ -3,11 +3,14 @@
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Coins, Loader2, Save, ShieldCheck, UserCheck } from "lucide-react";
+import { Loader2, Save, ShieldCheck, UserCheck } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { PlayerAvatar } from "@/components/motion/PlayerAvatar";
+import { CombatStat } from "@/components/motion/CombatStat";
 import type { CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
 import { getFreeFireAvatarUrl } from "@/lib/free-fire/providers/community-api-provider";
 import { normalizeFreeFireRegion } from "@/lib/free-fire/regions";
@@ -33,7 +36,7 @@ import {
 import { getOrCreateWallet, getWalletTransactions, type Wallet, type WalletTransaction } from "@/lib/wallet";
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
+  "arena-input";
 
 export default function ProfilePage() {
   return (
@@ -173,29 +176,21 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      {/* Header Banner */}
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-neutral-900 via-neutral-900/90 to-orange-950/40 p-6 md:p-8 shadow-2xl">
-        <StatusBadge tone="orange">Gestión de Cuenta</StatusBadge>
-        <h1 className="mt-3 text-3xl md:text-4xl font-black text-white">Perfil Oficial de Jugador</h1>
-        <p className="mt-2 text-sm text-neutral-400 max-w-2xl">
-          Coins, puesto y historial de esta arena. El UID de Free Fire queda como identidad para jugar, no como ranking.
-        </p>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Gestión de cuenta"
+        title="Perfil oficial de jugador"
+        description="Coins, puesto y historial de esta arena. El UID de Free Fire queda como identidad para jugar, no como ranking."
+      />
 
       <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
         {/* Left Gamer Card */}
         <aside className="space-y-6">
-          <div className="rounded-3xl border border-white/10 bg-neutral-900/90 p-6 shadow-2xl backdrop-blur-xl text-center relative overflow-hidden">
+          <div className="arena-panel relative overflow-hidden p-6 text-center">
             <div className="absolute top-0 inset-x-0 h-28 bg-gradient-to-r from-orange-600/40 via-cyan-500/30 to-emerald-500/30" />
             
-            <div className="relative mx-auto mt-6 flex size-28 items-center justify-center overflow-hidden rounded-2xl border-2 border-orange-400/40 bg-neutral-950 text-4xl font-black text-white shadow-2xl shadow-orange-950/50">
-              {displayAvatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayAvatarUrl} alt={nickname} className="size-full object-cover" />
-              ) : (
-                initials
-              )}
+            <div className="relative mx-auto mt-6 flex justify-center">
+              <PlayerAvatar src={displayAvatarUrl} name={nickname} initials={initials} size="xl" />
             </div>
 
             <div className="mt-4">
@@ -207,42 +202,19 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-              <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-3">
-                <span className="text-[10px] uppercase font-bold text-orange-300/80">Coins</span>
-                <p className="mt-1 flex items-center gap-1.5 font-black text-white text-sm">
-                  <Coins className="size-3.5 text-orange-300" />
-                  {arena.wallet ? Number(arena.wallet.balance).toLocaleString("es-AR") : "—"}
-                </p>
+              <CombatStat label="Coins" value={arena.wallet ? Number(arena.wallet.balance) : 0} tone="coin" />
+              <CombatStat label="Puesto" value={arena.rank?.rank ? `#${arena.rank.rank}` : "—"} />
+              <CombatStat label="Victorias" value={arena.rank?.wins ?? 0} tone="win" />
+              <CombatStat label="Participaciones" value={arena.rank?.participations ?? 0} />
+              <CombatStat label="Coins ganadas" value={arena.rank?.coinsWon ?? 0} tone="coin" />
+              <CombatStat label="Puntos" value={arena.rank?.points ?? 0} tone="kill" />
+              <div className="arena-stat">
+                <p className="arena-kicker">Free Fire UID</p>
+                <p className="mt-2 truncate font-bold text-white">{visibleFreefireUid}</p>
               </div>
-              <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-                <span className="text-[10px] uppercase font-bold text-cyan-300/80">Puesto</span>
-                <p className="mt-1 font-black text-white text-sm">
-                  {arena.rank?.rank ? `#${arena.rank.rank}` : "Sin ranking"}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Victorias</span>
-                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.wins ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Participaciones</span>
-                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.participations ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Coins ganadas</span>
-                <p className="mt-1 font-bold text-white text-sm">{arena.rank?.coinsWon ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Puntos</span>
-                <p className="mt-1 font-bold text-orange-200 text-sm">{arena.rank?.points ?? 0}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Free Fire UID</span>
-                <p className="mt-1 font-bold text-white text-sm truncate">{visibleFreefireUid}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-3">
-                <span className="text-[10px] uppercase font-bold text-neutral-500">Región</span>
-                <p className="mt-1 font-bold text-cyan-300 text-sm uppercase">{freefireRegion}</p>
+              <div className="arena-stat">
+                <p className="arena-kicker">Región</p>
+                <p className="mt-2 font-bold uppercase text-cyan-300">{freefireRegion}</p>
               </div>
             </div>
 
@@ -267,7 +239,7 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
 
         {/* Right Form & Verification */}
         <div className="space-y-6">
-          <section className="rounded-3xl border border-white/10 bg-neutral-900/90 p-6 md:p-8 shadow-2xl backdrop-blur-xl">
+          <section className="arena-panel p-6 md:p-8">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-xl font-black text-white">Vincular UID de Free Fire</h3>
@@ -316,7 +288,7 @@ function ProfileContent({ auth }: { auth: AuthenticatedProfile }) {
               <button
                 type="submit"
                 disabled={saving}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-3.5 text-sm font-black text-white shadow-xl shadow-orange-950/50 transition hover:from-orange-500 hover:to-orange-400 disabled:opacity-60"
+                className="arena-btn w-full py-3.5 disabled:opacity-60"
               >
                 {saving ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
                 {saving ? "Guardando en Supabase..." : "Vincular y Guardar UID"}
@@ -422,7 +394,7 @@ function HistoryCard({
   const isEmpty = !children || (Array.isArray(children) && children.length === 0);
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/80 p-5">
+    <section className="arena-panel p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-black text-white">{title}</h3>
         <Link href={action.href} className="text-xs font-bold text-orange-300 hover:text-orange-200">

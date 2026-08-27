@@ -177,9 +177,9 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="arena-page">
       {state.status === "loading" && (
-        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-neutral-900/80 p-6 text-neutral-300 shadow-xl">
+        <div className="flex items-center gap-3 arena-panel p-6 text-neutral-300">
           <Loader2 className="size-5 animate-spin text-orange-400" />
           <span className="text-sm font-bold">Cargando desafío de arena...</span>
         </div>
@@ -203,7 +203,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
       {state.status === "ready" && (
         <div className="space-y-6">
           <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <div className="rounded-3xl border border-white/10 bg-neutral-900/90 p-6 shadow-2xl backdrop-blur-xl md:p-8">
+            <div className="arena-panel p-6 md:p-8">
               <StatusBadge tone={state.challenge.status === "active" ? "emerald" : state.challenge.status === "completed" ? "cyan" : state.challenge.status === "cancelled" ? "red" : "orange"}>
                 {state.challenge.status || "active"}
               </StatusBadge>
@@ -231,7 +231,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
               )}
             </div>
 
-            <aside className="flex flex-col justify-between rounded-3xl border border-orange-500/30 bg-gradient-to-br from-neutral-900 via-neutral-900 to-orange-950/40 p-6 shadow-2xl backdrop-blur-xl">
+            <aside className="arena-panel flex flex-col justify-between p-6">
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Costo de Entrada</span>
@@ -259,7 +259,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
                   type="button"
                   onClick={handleJoin}
                   disabled={joining || Boolean(state.participant) || state.challenge.status !== "active"}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-3.5 text-sm font-black text-white shadow-xl shadow-orange-950/50 transition hover:from-orange-500 hover:to-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="arena-btn w-full py-3.5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {joining ? <Loader2 className="size-5 animate-spin" /> : <ShieldCheck className="size-5" />}
                   {state.participant ? "Inscripto" : joining ? "Inscribiendo..." : state.challenge.status === "active" ? "Confirmar inscripción" : "Inscripción cerrada"}
@@ -290,7 +290,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
             />
           </section>
 
-          <section className="overflow-hidden rounded-3xl border border-white/10 bg-neutral-900/85">
+          <section className="arena-panel overflow-hidden">
             <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">Tabla en vivo</p>
@@ -352,7 +352,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
 
 function InfoCard({ icon: Icon, label, value }: { icon: typeof CalendarDays; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-neutral-900/80 p-4 shadow-2xl shadow-black/20">
+    <div className="arena-stat">
       <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-neutral-500">
         <Icon className="size-4 text-cyan-200" />
         {label}

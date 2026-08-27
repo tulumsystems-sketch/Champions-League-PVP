@@ -1,10 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Coins, ShieldCheck, Swords, Trophy } from "lucide-react";
+import Link from "next/link";
+import { Coins, ShieldCheck, Trophy } from "lucide-react";
 
 import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { BrandMark } from "@/components/hud/BrandMark";
 import { GamingShell } from "@/components/GamingShell";
+import { StaggerIn } from "@/components/motion/StaggerIn";
 
 type AuthFormWrapperProps = {
   title: string;
@@ -17,42 +20,48 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
     <GamingShell>
       <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_460px] lg:px-8">
         <section className="hidden lg:block">
-          <StatusBadge tone="orange">Champions League PVP</StatusBadge>
-          <h1 className="mt-5 max-w-2xl text-5xl font-black leading-tight tracking-tight text-white">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <BrandMark />
+            <span className="font-heading text-sm font-bold uppercase tracking-[0.2em] text-white">Champions League PVP</span>
+          </Link>
+          <StatusBadge tone="orange" className="mt-8">
+            Arena competitiva
+          </StatusBadge>
+          <h1 className="mt-5 max-w-2xl font-heading text-5xl font-bold leading-[1.02] tracking-tight text-white">
             Entrá a la arena competitiva de Free Fire.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-neutral-300">
-            Torneos, salas privadas, ranking semanal y economía de Coins en una experiencia competitiva lista para presentar.
+            Torneos, salas privadas, ranking y economía de Coins. Misma lógica, ahora con HUD de combate.
           </p>
-          <div className="mt-8 grid max-w-xl grid-cols-3 gap-3">
-            <div className="rounded-lg border border-white/10 bg-neutral-900/75 p-4">
-              <Trophy className="size-5 text-yellow-200" />
+          <StaggerIn className="mt-8 grid max-w-xl grid-cols-3 gap-3">
+            <div className="arena-stat">
+              <Trophy className="size-5 text-amber-300" />
               <p className="mt-3 text-sm font-bold text-white">Rankings</p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-neutral-900/75 p-4">
-              <Coins className="size-5 text-orange-200" />
+            <div className="arena-stat">
+              <Coins className="size-5 text-orange-300" />
               <p className="mt-3 text-sm font-bold text-white">Coins</p>
             </div>
-            <div className="rounded-lg border border-white/10 bg-neutral-900/75 p-4">
-              <ShieldCheck className="size-5 text-emerald-200" />
+            <div className="arena-stat">
+              <ShieldCheck className="size-5 text-emerald-300" />
               <p className="mt-3 text-sm font-bold text-white">UID</p>
             </div>
-          </div>
+          </StaggerIn>
         </section>
 
         <section className="w-full">
           <div className="mx-auto w-full max-w-md">
-            <div className="mb-6 text-center">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-lg bg-orange-600 shadow-xl shadow-orange-950/40">
-                <Swords className="size-7 text-white" />
-              </div>
-              <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-orange-200">Champions League PVP</p>
-              <p className="mt-1 text-sm text-neutral-500">Champions League PVP</p>
+            <div className="mb-6 text-center lg:hidden">
+              <Link href="/" className="inline-flex">
+                <BrandMark size="lg" />
+              </Link>
+              <p className="mt-4 arena-kicker text-orange-300">Champions League PVP</p>
+              <p className="mt-1 text-sm text-neutral-500">Arena competitiva</p>
             </div>
 
-            <div className="rounded-lg border border-white/10 bg-neutral-900/90 p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div className="arena-panel p-6">
               <div className="mb-5">
-                <h2 className="text-2xl font-black tracking-tight text-white">{title}</h2>
+                <h2 className="font-heading text-2xl font-bold tracking-tight text-white">{title}</h2>
                 {subtitle && <p className="mt-1 text-sm leading-6 text-neutral-400">{subtitle}</p>}
               </div>
               {children}

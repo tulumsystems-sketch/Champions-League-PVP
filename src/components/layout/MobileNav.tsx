@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { MAIN_NAV, isNavActive } from "@/lib/navigation";
+import { DOCK_NAV, isNavActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-neutral-950/95 backdrop-blur-xl lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#07080e]/94 backdrop-blur-xl lg:hidden">
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 py-2">
-        {MAIN_NAV.map((item) => {
+        {DOCK_NAV.map((item) => {
           const Icon = item.icon;
           const active = isNavActive(pathname, item.href);
 
@@ -21,7 +21,7 @@ export function MobileNav() {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11px] font-semibold transition",
+                  "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold uppercase tracking-wide transition",
                   active ? "text-orange-300" : "text-neutral-500 hover:text-neutral-300",
                 )}
               >

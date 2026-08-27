@@ -39,7 +39,7 @@ export function AdminPayoutSettings() {
   };
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-5">
+    <section className="arena-panel p-5">
       <h2 className="text-xl font-black text-white">Datos de cobro</h2>
       <p className="mt-1 text-xs text-neutral-500">CBU/CVU/alias y wallet USDT que ve el jugador al recargar. Reemplazá los placeholders.</p>
       {loading ? (

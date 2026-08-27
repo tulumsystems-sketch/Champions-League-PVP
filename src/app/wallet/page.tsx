@@ -5,7 +5,9 @@ import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock, Loader2, PlusCir
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { CoinChip } from "@/components/motion/CoinChip";
 import {
   createDepositRequest,
   getCoinPackages,
@@ -83,28 +85,26 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
   }, [auth.user.id]);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <section className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-neutral-900/85 p-6 md:flex-row md:items-center md:p-8">
-        <div>
-          <StatusBadge tone="yellow">Wallet</StatusBadge>
-          <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">Coins de la arena</h1>
-          <p className="mt-2 max-w-xl text-sm text-neutral-400">
-            1 Coin = 1 USD. Recargás por transferencia, un admin confirma y acredita. Cuando retires, se debitan Coins y
-            el admin te paga.
-          </p>
-          <p className="mt-6 text-4xl font-black text-white">
-            {state.status === "ready" ? `${state.wallet.balance} Coins` : "..."}
-          </p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button type="button" onClick={() => setDepositOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 text-sm font-black text-white">
-            <PlusCircle className="size-4" /> Cargar saldo
-          </button>
-          <button type="button" onClick={() => setWithdrawOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 px-5 py-3 text-sm font-black text-white">
-            <ArrowUpFromLine className="size-4" /> Retirar
-          </button>
-        </div>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Wallet"
+        badgeTone="yellow"
+        title="Coins de la arena"
+        description="1 Coin = 1 USD. Recargás por transferencia, un admin confirma y acredita. Cuando retires, se debitan Coins y el admin te paga."
+        actions={
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={() => setDepositOpen(true)} className="arena-btn">
+              <PlusCircle className="size-4" /> Cargar saldo
+            </button>
+            <button type="button" onClick={() => setWithdrawOpen(true)} className="arena-btn-ghost">
+              <ArrowUpFromLine className="size-4" /> Retirar
+            </button>
+          </div>
+        }
+      />
+      <p className="font-heading text-4xl font-bold text-white">
+        {state.status === "ready" ? <CoinChip balance={Number(state.wallet.balance)} className="px-0 py-0 border-0 bg-transparent text-3xl" /> : "..."}
+      </p>
 
       {successMsg && (
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">
@@ -115,7 +115,7 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
 
       <section className="grid gap-3 sm:grid-cols-3">
         {packages.map((pkg) => (
-          <div key={pkg.id} className="rounded-2xl border border-white/10 bg-black/30 p-4">
+          <div key={pkg.id} className="arena-stat">
             <p className="text-xs uppercase tracking-widest text-neutral-500">{pkg.name}</p>
             <p className="mt-2 text-2xl font-black text-white">{pkg.coins} Coins</p>
             <p className="text-sm text-orange-200">${pkg.priceUsd} USD</p>
@@ -126,7 +126,7 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
       <RequestList title="Tus recargas" rows={deposits.map((row) => ({ id: row.id, title: `+${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))} />
       <RequestList title="Tus retiros" rows={withdrawals.map((row) => ({ id: row.id, title: `-${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))} />
 
-      <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-6">
+      <section className="arena-panel p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-black text-white">Movimientos</h2>
           <Clock className="size-5 text-orange-300" />
@@ -251,7 +251,7 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
       <input value={receipt} onChange={(event) => setReceipt(event.target.value)} placeholder="O pegá un link (Drive, Imgur)" className={inputClass} />
       <input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notas opcionales (titular, últimos 4, hash TX)" className={inputClass} />
       {error && <p className="text-sm text-red-300">{error}</p>}
-      <button type="submit" disabled={submitting} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 text-sm font-black text-white disabled:opacity-60">
+      <button type="submit" disabled={submitting} className="arena-btn w-full disabled:opacity-60">
         {submitting ? <Loader2 className="size-4 animate-spin" /> : <ArrowDownToLine className="size-4" />}
         Enviar a revisión admin
       </button>
@@ -294,7 +294,7 @@ function WithdrawForm({ packages, onDone }: { packages: CoinPackage[]; onDone: (
       />
       <p className="text-xs text-neutral-500">Se debitan las Coins ahora. Si el admin rechaza, se te devuelven.</p>
       {error && <p className="text-sm text-red-300">{error}</p>}
-      <button type="submit" disabled={submitting} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 text-sm font-black text-white disabled:opacity-60">
+      <button type="submit" disabled={submitting} className="arena-btn w-full disabled:opacity-60">
         {submitting ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpFromLine className="size-4" />}
         Pedir retiro
       </button>
@@ -340,7 +340,7 @@ function MethodPicker({ value, onChange }: { value: PayoutMethod; onChange: (met
 function MoneyModal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-neutral-900 p-6">
+      <div className="arena-panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-xl font-black text-white">{title}</h3>
           <button type="button" onClick={onClose} className="text-neutral-400">Cerrar</button>
@@ -353,7 +353,7 @@ function MoneyModal({ title, onClose, children }: { title: string; onClose: () =
 
 function RequestList({ title, rows }: { title: string; rows: { id: string; title: string; status: string; date: string }[] }) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/80 p-5">
+    <section className="arena-panel p-5">
       <h2 className="text-lg font-black text-white">{title}</h2>
       {rows.length === 0 ? <p className="mt-2 text-sm text-neutral-500">Sin solicitudes.</p> : null}
       <div className="mt-3 space-y-2">
@@ -371,7 +371,7 @@ function RequestList({ title, rows }: { title: string; rows: { id: string; title
   );
 }
 
-const inputClass = "w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none";
+const inputClass = "arena-input";
 
 function formatDate(value: string | null) {
   if (!value) return "Sin fecha";

@@ -49,6 +49,8 @@ export const MAIN_NAV: NavItem[] = [
   },
 ];
 
+export const DOCK_NAV: NavItem[] = MAIN_NAV.filter((item) => item.href !== "/profile");
+
 export const COMING_SOON_NAV: NavItem[] = [];
 
 export const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/register/completion"];

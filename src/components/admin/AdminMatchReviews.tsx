@@ -62,7 +62,7 @@ export function AdminMatchReviews() {
   const others = rooms.filter((room) => !openRooms.some((item) => item.id === room.id)).slice(0, 8);
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-5">
+    <section className="arena-panel p-5">
       <div>
         <h2 className="text-xl font-black text-white">Resultados y conflictos</h2>
         <p className="mt-1 text-xs text-neutral-500">

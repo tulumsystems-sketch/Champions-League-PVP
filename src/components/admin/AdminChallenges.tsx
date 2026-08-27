@@ -50,7 +50,7 @@ export function AdminChallenges() {
   }, []);
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-5">
+    <section className="arena-panel p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-black text-white">Desafíos</h2>
@@ -192,7 +192,7 @@ function ChallengeForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <form onSubmit={handleSubmit} className="max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto rounded-3xl border border-white/10 bg-neutral-900 p-6">
+      <form onSubmit={handleSubmit} className="arena-panel max-h-[90vh] w-full max-w-lg space-y-3 overflow-y-auto p-6">
         <h3 className="text-xl font-black text-white">{challenge ? "Editar desafío" : "Nuevo desafío"}</h3>
         <input required value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Título" className={inputClass} />
         <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Descripción" className={`${inputClass} min-h-20`} />
@@ -276,7 +276,7 @@ function CloseChallengeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-neutral-900 p-6">
+      <div className="arena-panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
         <div className="flex items-center gap-2">
           <Trophy className="size-5 text-orange-300" />
           <h3 className="text-xl font-black text-white">Cerrar {challenge.title}</h3>

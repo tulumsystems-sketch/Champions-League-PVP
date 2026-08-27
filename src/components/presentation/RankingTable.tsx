@@ -1,5 +1,12 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+
 import type { LeaderboardEntry } from "@/lib/rooms-db";
-import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { RankMedal } from "@/components/hud/RankMedal";
+import { CountUp } from "@/components/motion/CountUp";
+import { LivePulse } from "@/components/hud/LivePulse";
 import { cn } from "@/lib/utils";
 
 export function RankingTable({
@@ -13,14 +20,27 @@ export function RankingTable({
   emptyMessage?: string;
   highlightUserId?: string;
 }) {
+  const bodyRef = useRef<HTMLTableSectionElement>(null);
+
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!body) return;
+    const items = body.querySelectorAll("tr");
+    if (!items.length) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(items, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.32, stagger: 0.04, ease: "power2.out" });
+    }, body);
+    return () => ctx.revert();
+  }, [rows]);
+
   return (
-    <div className="overflow-hidden rounded-3xl border border-white/10 bg-neutral-900/80 shadow-2xl shadow-black/25">
-      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+    <div className="arena-panel overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">Ranking de arena</p>
-          <h3 className="mt-1 text-lg font-bold text-white">{title}</h3>
+          <p className="arena-kicker">Ranking de arena</p>
+          <h3 className="mt-1 font-heading text-lg font-bold text-white">{title}</h3>
         </div>
-        <StatusBadge tone="cyan">Supabase</StatusBadge>
+        <LivePulse label="Live" />
       </div>
 
       {rows.length === 0 ? (
@@ -31,7 +51,7 @@ export function RankingTable({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-white/[0.03] text-xs uppercase tracking-[0.14em] text-neutral-500">
+            <thead className="bg-white/[0.03] text-[10px] uppercase tracking-[0.16em] text-neutral-500">
               <tr>
                 <th className="px-5 py-3">#</th>
                 <th className="px-5 py-3">Jugador</th>
@@ -41,20 +61,30 @@ export function RankingTable({
                 <th className="px-5 py-3">Puntos</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody ref={bodyRef} className="divide-y divide-white/8">
               {rows.map((row, index) => {
                 const isMine = Boolean(highlightUserId && row.userId === highlightUserId);
+                const place = index + 1;
                 return (
-                  <tr key={row.id} className={cn(isMine && "bg-orange-500/10")}>
-                    <td className="px-5 py-4 font-black text-white">{index + 1}</td>
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      "transition-colors",
+                      isMine && "bg-orange-500/10",
+                      place === 1 && !isMine && "bg-amber-500/5",
+                    )}
+                  >
+                    <td className="px-5 py-4">
+                      <RankMedal place={place} />
+                    </td>
                     <td className="px-5 py-4 font-bold text-white">
                       {row.nickname}
                       {isMine ? <span className="ml-2 text-[10px] font-black uppercase tracking-wider text-orange-300">Vos</span> : null}
                     </td>
-                    <td className="px-5 py-4 text-neutral-300">{row.wins.toLocaleString("es-AR")}</td>
-                    <td className="px-5 py-4 text-neutral-300">{row.participations.toLocaleString("es-AR")}</td>
-                    <td className="px-5 py-4 text-neutral-300">{row.coinsWon.toLocaleString("es-AR")}</td>
-                    <td className="px-5 py-4 font-bold text-orange-200">{row.points.toLocaleString("es-AR")}</td>
+                    <td className="px-5 py-4 text-emerald-200"><CountUp value={row.wins} /></td>
+                    <td className="px-5 py-4 text-neutral-300"><CountUp value={row.participations} /></td>
+                    <td className="px-5 py-4 text-amber-200"><CountUp value={row.coinsWon} /></td>
+                    <td className="px-5 py-4 font-bold text-orange-200"><CountUp value={row.points} /></td>
                   </tr>
                 );
               })}

@@ -6,7 +6,9 @@ import { ArrowLeft, CalendarDays, Coins, Loader2, Trophy } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { GamingShell } from "@/components/GamingShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { HoverLift } from "@/components/motion/HoverLift";
+import { StaggerIn } from "@/components/motion/StaggerIn";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import { challengePrizeLabel, getActiveChallenges, getCompletedChallenges, type Challenge } from "@/lib/challenges";
 import { metricLabel } from "@/lib/player-stats";
@@ -64,14 +66,13 @@ function ChallengesContent() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-neutral-900 via-neutral-900/90 to-orange-950/40 p-6 md:p-8 shadow-2xl">
-        <StatusBadge tone="orange">Desafíos Activos</StatusBadge>
-        <h1 className="mt-3 text-3xl md:text-4xl font-black text-white">Competencias y Torneos PVP</h1>
-        <p className="mt-2 text-sm text-neutral-400 max-w-2xl">
-          Inscríbete con Coins, competí por premios fijos (1° / 2° / 3°) y sumá según la métrica del desafío. Lo que cuenta es lo que juegues desde que te inscribís.
-        </p>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Desafíos"
+        live
+        title="Competencias y torneos PVP"
+        description="Inscríbete con Coins, competí por premios fijos (1° / 2° / 3°) y sumá según la métrica del desafío. Lo que cuenta es lo que juegues desde que te inscribís."
+      />
 
         {state.status === "loading" && (
           <div className="mt-6 flex items-center gap-3 rounded-lg border border-white/10 bg-neutral-900/80 p-5 text-neutral-300">
@@ -89,17 +90,17 @@ function ChallengesContent() {
 
         {state.status === "ready" && (
           <>
-            <div className="grid gap-6 sm:grid-cols-2">
+            <StaggerIn className="grid gap-6 sm:grid-cols-2">
               {state.challenges.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-neutral-900/80 p-8 text-center sm:col-span-2">
+                <div className="arena-panel p-8 text-center sm:col-span-2">
                   <Trophy className="mx-auto size-10 text-orange-400" />
-                  <h2 className="mt-4 text-xl font-black text-white">No hay desafíos activos</h2>
+                  <h2 className="mt-4 font-heading text-xl font-bold text-white">No hay desafíos activos</h2>
                   <p className="mt-2 text-sm text-neutral-400">Cuando se creen competencias nuevas, aparecerán aquí en tiempo real.</p>
                 </div>
               ) : (
                 state.challenges.map((challenge) => <ChallengeListCard key={challenge.id} challenge={challenge} />)
               )}
-            </div>
+            </StaggerIn>
             {state.completed.length > 0 && (
               <section className="space-y-4">
                 <h2 className="text-lg font-black text-white">Cerrados</h2>
@@ -116,7 +117,8 @@ function ChallengesContent() {
 
 function ChallengeListCard({ challenge }: { challenge: Challenge }) {
   return (
-    <article className="rounded-2xl border border-white/10 bg-neutral-900/90 p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between transition-all hover:border-orange-500/40">
+    <HoverLift>
+    <article className="arena-panel flex h-full flex-col justify-between p-6 transition-all hover:border-orange-500/40">
       <div>
         <div className="flex items-center justify-between gap-2">
           <StatusBadge tone={challenge.status === "completed" ? "cyan" : challenge.status === "cancelled" ? "red" : "orange"}>{challenge.status || "active"}</StatusBadge>
@@ -132,18 +134,19 @@ function ChallengeListCard({ challenge }: { challenge: Challenge }) {
         <span className="text-xs text-neutral-400 font-semibold">{challenge.max_players ? `${challenge.max_players} cupos máx.` : "Cupos abiertos"}</span>
         <Link
           href={`/challenges/${challenge.id}`}
-          className="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-950/40 transition hover:bg-orange-500"
+          className="arena-btn"
         >
           Ver Desafío
         </Link>
       </div>
     </article>
+    </HoverLift>
   );
 }
 
 function InfoPill({ icon: Icon, label, value }: { icon: typeof Coins; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+    <div className="arena-stat">
       <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-neutral-500">
         <Icon className="size-4 text-cyan-200" />
         {label}

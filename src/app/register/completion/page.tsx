@@ -136,7 +136,7 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
             const avatar = getFreeFireAvatarUrl(info.avatarId);
             if (avatar) setAvatarUrl(avatar);
           }}
-          inputClassName="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20"
+          inputClassName="arena-input"
         />
 
         <label className="space-y-1.5">
@@ -146,14 +146,14 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
             value={avatarUrl}
             onChange={(event) => setAvatarUrl(event.target.value)}
             placeholder="https://..."
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+            className="arena-input"
           />
         </label>
 
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-500 disabled:opacity-60"
+          className="arena-btn w-full disabled:opacity-60"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
           {loading ? "Completando..." : "Completar perfil"}

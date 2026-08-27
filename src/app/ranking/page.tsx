@@ -5,8 +5,10 @@ import { Loader2, Trophy } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { RankingTable } from "@/components/presentation/RankingTable";
-import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { CombatStat } from "@/components/motion/CombatStat";
+import { StaggerIn } from "@/components/motion/StaggerIn";
 import { getPlatformRank, type PlatformRank } from "@/lib/arena-stats";
 import { getLeaderboard, type LeaderboardEntry } from "@/lib/rooms-db";
 import { subscribeRealtime } from "@/lib/realtime";
@@ -63,27 +65,27 @@ function RankingContent({ userId }: { userId: string }) {
     state.status === "ready" && state.rows.some((row) => row.userId === userId);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-6 shadow-2xl shadow-black/25 md:p-8">
-        <StatusBadge tone="cyan">Ranking</StatusBadge>
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-5xl">Clasificación de la arena</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-400">
-          Victorias, participaciones, Coins ganadas y puntos de salas y desafíos de esta plataforma. La carrera de Free Fire no entra en esta tabla.
-        </p>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Ranking"
+        badgeTone="cyan"
+        live
+        title="Clasificación de la arena"
+        description="Victorias, participaciones, Coins ganadas y puntos de salas y desafíos de esta plataforma. La carrera de Free Fire no entra en esta tabla."
+      />
 
       {state.status === "ready" ? (
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <RankStat label="Tu puesto" value={state.me.rank ? `#${state.me.rank}` : "—"} />
-          <RankStat label="Victorias" value={state.me.wins.toLocaleString("es-AR")} />
-          <RankStat label="Participaciones" value={state.me.participations.toLocaleString("es-AR")} />
-          <RankStat label="Coins ganadas" value={state.me.coinsWon.toLocaleString("es-AR")} />
-          <RankStat label="Puntos" value={state.me.points.toLocaleString("es-AR")} />
-        </section>
+        <StaggerIn className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <CombatStat label="Tu puesto" value={state.me.rank ? `#${state.me.rank}` : "—"} />
+          <CombatStat label="Victorias" value={state.me.wins} tone="win" />
+          <CombatStat label="Participaciones" value={state.me.participations} />
+          <CombatStat label="Coins ganadas" value={state.me.coinsWon} tone="coin" />
+          <CombatStat label="Puntos" value={state.me.points} tone="kill" />
+        </StaggerIn>
       ) : null}
 
       {state.status === "loading" && (
-        <div className="flex items-center gap-3 rounded-3xl border border-white/10 bg-neutral-900/80 p-5 text-neutral-300">
+        <div className="flex items-center gap-3 arena-panel p-5 text-neutral-300">
           <Loader2 className="size-5 animate-spin text-orange-200" />
           <span className="text-sm font-semibold">Cargando ranking...</span>
         </div>
@@ -106,7 +108,7 @@ function RankingContent({ userId }: { userId: string }) {
       )}
 
       {state.status === "ready" && state.rows.length === 0 && (
-        <div className="flex items-start gap-3 rounded-3xl border border-white/10 bg-neutral-900/70 p-5 text-neutral-300">
+        <div className="flex items-start gap-3 arena-panel p-5 text-neutral-300">
           <Trophy className="mt-0.5 size-5 text-orange-300" />
           <p className="text-sm leading-6">
             El ranking se llena cuando se cierran salas y desafíos. Sincronizar el UID de Free Fire no suma puntos acá.
@@ -122,15 +124,6 @@ function RankingContent({ userId }: { userId: string }) {
           </p>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function RankStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-neutral-900/80 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">{label}</p>
-      <p className="mt-2 text-xl font-black text-white">{value}</p>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { AdminPayoutSettings } from "@/components/admin/AdminPayoutSettings";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import {
   approveDeposit,
@@ -108,14 +109,12 @@ function AdminContent({ auth }: { auth: AuthenticatedProfile }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <section>
-        <StatusBadge tone="orange">Admin</StatusBadge>
-        <h1 className="mt-3 text-3xl font-black text-white">Operaciones de Coins</h1>
-        <p className="mt-2 max-w-2xl text-sm text-neutral-400">
-          Jugadores, recargas, retiros, resultados de salas, desafíos, ajuste de premios y datos de cobro.
-        </p>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Admin"
+        title="Operaciones de Coins"
+        description="Jugadores, recargas, retiros, resultados de salas, desafíos, ajuste de premios y datos de cobro."
+      />
 
       {error && <p className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
 
@@ -123,7 +122,7 @@ function AdminContent({ auth }: { auth: AuthenticatedProfile }) {
 
       <section className="grid gap-3 sm:grid-cols-3">
         {packages.map((pkg) => (
-          <div key={pkg.id} className="rounded-2xl border border-white/10 bg-neutral-900 p-4">
+          <div key={pkg.id} className="arena-stat">
             <p className="text-xs text-neutral-500">{pkg.name}</p>
             <p className="text-lg font-black text-white">{pkg.coins} Coins = ${pkg.priceUsd}</p>
           </div>
@@ -209,7 +208,7 @@ function AdminTable({
   const others = rows.filter((row) => row.status !== "pending");
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-neutral-900/85 p-5">
+    <section className="arena-panel p-5">
       <h2 className="text-xl font-black text-white">{title}</h2>
       {pending.length === 0 && <p className="mt-2 text-sm text-neutral-500">No hay pendientes.</p>}
       <div className="mt-4 space-y-3">
@@ -279,7 +278,7 @@ function AdminRow({
                 setBusy(false);
               }
             }}
-            className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:opacity-60"
+        className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-black text-white disabled:opacity-60"
           >
             {kind === "deposit" ? "Aprobar y acreditar" : "Marcar pagado"}
           </button>

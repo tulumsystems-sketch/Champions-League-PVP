@@ -17,10 +17,10 @@ export function LogoutButton() {
     <button
       type="button"
       onClick={handleLogout}
-      className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-100 transition hover:bg-red-500/20"
+      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-100 transition hover:border-red-400/40 hover:bg-red-500/20"
     >
       <LogOut className="size-4" />
-      <span className="hidden sm:inline">Cerrar sesión</span>
+      <span>Cerrar sesión</span>
     </button>
   );
 }

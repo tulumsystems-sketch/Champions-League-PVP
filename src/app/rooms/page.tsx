@@ -5,6 +5,9 @@ import { Loader2, Plus, Swords, UsersRound, X } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { HoverLift } from "@/components/motion/HoverLift";
+import { CoinChip } from "@/components/motion/CoinChip";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import type { AuthenticatedProfile } from "@/lib/profile";
 import {
@@ -125,37 +128,34 @@ function RoomsContent({ auth }: { auth: AuthenticatedProfile }) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
-      <section className="flex flex-col justify-between gap-6 rounded-3xl border border-white/10 bg-neutral-900/85 p-6 shadow-2xl md:flex-row md:items-center md:p-8">
-        <div>
-          <StatusBadge tone="emerald">Salas privadas</StatusBadge>
-          <h1 className="mt-3 text-3xl font-black text-white md:text-4xl">Matchmaking 1v1 / 2v2 / 3v3 / 4v4</h1>
-          <p className="mt-2 max-w-2xl text-sm text-neutral-400">
-            Cada jugador paga la entrada. La sala arranca cuando se llenan los dos equipos. Al terminar, subí la captura del
-            resultado: un admin revisa y paga el 90% del pozo al equipo ganador.
-          </p>
-          <p className="mt-3 text-sm font-bold text-orange-200">Tu saldo: {balance == null ? "..." : `${balance} Coins`}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-orange-600 px-5 py-3 text-sm font-black text-white"
-        >
-          <Plus className="size-4" />
-          Crear sala
-        </button>
-      </section>
+    <div className="arena-page">
+      <PageHeader
+        badge="Salas privadas"
+        badgeTone="emerald"
+        live
+        title="Matchmaking 1v1 / 2v2 / 3v3 / 4v4"
+        description="Cada jugador paga la entrada. La sala arranca cuando se llenan los dos equipos. Al terminar, subí la captura del resultado: un admin revisa y paga el 90% del pozo al equipo ganador."
+        actions={
+          <button type="button" onClick={() => setModalOpen(true)} className="arena-btn">
+            <Plus className="size-4" />
+            Crear sala
+          </button>
+        }
+      />
+      <p className="text-sm font-bold text-orange-200">
+        Tu saldo: {balance == null ? "..." : <CoinChip balance={balance} className="align-middle" />}
+      </p>
 
       {success && <p className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">{success}</p>}
       {error && <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm font-bold text-red-200">{error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-3 rounded-3xl border border-white/10 p-6 text-neutral-300">
+        <div className="flex items-center gap-3 arena-panel p-6 text-neutral-300">
           <Loader2 className="size-5 animate-spin text-orange-300" />
           Cargando salas...
         </div>
       ) : rooms.length === 0 ? (
-        <div className="rounded-3xl border border-white/10 bg-neutral-900/80 p-8 text-center">
+        <div className="arena-panel p-8 text-center">
           <UsersRound className="mx-auto size-8 text-orange-300" />
           <p className="mt-3 font-bold text-white">No hay salas todavía</p>
           <p className="mt-1 text-sm text-neutral-500">Creá la primera con tu saldo de Coins.</p>
@@ -197,7 +197,7 @@ function RoomsContent({ auth }: { auth: AuthenticatedProfile }) {
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <form onSubmit={handleCreateRoom} className="w-full max-w-md space-y-4 rounded-3xl border border-white/10 bg-neutral-900 p-6">
+          <form onSubmit={handleCreateRoom} className="arena-panel w-full max-w-md space-y-4 p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-black text-white">Nueva sala</h2>
               <button type="button" onClick={() => setModalOpen(false)} className="rounded-lg p-2 text-neutral-400">
@@ -239,7 +239,7 @@ function RoomsContent({ auth }: { auth: AuthenticatedProfile }) {
               Pozo del equipo ganador: {roomTeamPrize(entryFee, mode)} Coins ({roomTeamSize(mode)} jugadores ×{" "}
               {Math.floor(roomTeamPrize(entryFee, mode) / roomTeamSize(mode))} c/u, casa 10%).
             </p>
-            <button type="submit" disabled={creating} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 text-sm font-black text-white disabled:opacity-60">
+            <button type="submit" disabled={creating} className="arena-btn w-full disabled:opacity-60">
               {creating ? <Loader2 className="size-4 animate-spin" /> : <Swords className="size-4" />}
               {creating ? "Creando..." : "Crear y debitar entrada"}
             </button>
@@ -251,7 +251,7 @@ function RoomsContent({ auth }: { auth: AuthenticatedProfile }) {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none focus:border-orange-400";
+  "w-full arena-input";
 
 function RoomCard({
   room,
@@ -280,7 +280,8 @@ function RoomCard({
     isParticipant && (room.status === "in_progress" || room.status === "pending_review" || room.status === "disputed");
 
   return (
-    <article className="rounded-3xl border border-white/10 bg-neutral-900/90 p-5">
+    <HoverLift>
+    <article className="arena-panel p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">
@@ -323,6 +324,7 @@ function RoomCard({
         {canSubmit && <ResultSubmitForm busy={busy} onSubmit={onSubmitResult} existing={room.results.find((item) => item.submittedBy === userId)} />}
       </div>
     </article>
+    </HoverLift>
   );
 }
 
@@ -408,7 +410,7 @@ function ResultSubmitForm({
         placeholder="Nota opcional"
         className="w-full rounded-lg border border-white/10 bg-neutral-950 px-2 py-1.5 text-xs text-white outline-none"
       />
-      <button type="submit" disabled={busy} className="w-full rounded-lg bg-orange-600 py-2 text-[11px] font-black text-white disabled:opacity-60">
+      <button type="submit" disabled={busy} className="arena-btn w-full py-2 text-[11px] disabled:opacity-60">
         {busy ? "Enviando..." : "Subir captura a revisión"}
       </button>
     </form>
@@ -458,7 +460,7 @@ function TeamColumn({
           type="button"
           disabled={busy}
           onClick={() => onJoin(team)}
-          className="mt-3 w-full rounded-lg bg-orange-600 py-1.5 text-[11px] font-black text-white disabled:opacity-60"
+          className="arena-btn mt-3 w-full py-1.5 text-[11px] disabled:opacity-60"
         >
           Unirme
         </button>

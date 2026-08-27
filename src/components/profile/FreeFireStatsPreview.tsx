@@ -1,8 +1,13 @@
+"use client";
+
 import { Crown, Swords, Target, Trophy, Users } from "lucide-react";
 
 import type { CommunityPlayerInfo, CommunityPlayerStats, CommunityStatsBucket } from "@/lib/free-fire/providers/community-api-provider";
 import { getFreeFireRegionLabel } from "@/lib/free-fire/regions";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
+import { CombatStat } from "@/components/motion/CombatStat";
+import { PlayerAvatar } from "@/components/motion/PlayerAvatar";
+import { getFreeFireAvatarUrl } from "@/lib/free-fire/providers/community-api-provider";
 
 type FreeFireStatsPreviewProps = {
   info: CommunityPlayerInfo;
@@ -12,18 +17,21 @@ type FreeFireStatsPreviewProps = {
 
 export function FreeFireStatsPreview({ info, stats, region }: FreeFireStatsPreviewProps) {
   return (
-    <div className="space-y-4 rounded-lg border border-cyan-400/20 bg-cyan-500/5 p-4">
+    <div className="arena-panel space-y-4 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <StatusBadge tone="cyan">Datos en vivo</StatusBadge>
-          <h3 className="mt-3 text-2xl font-black text-white">{info.nickname || "Jugador sin nickname"}</h3>
-          <p className="mt-1 text-sm text-neutral-400">
-            UID {info.accountId || "—"} · Región {info.region || getFreeFireRegionLabel(region)}
-          </p>
+        <div className="flex items-center gap-3">
+          <PlayerAvatar src={getFreeFireAvatarUrl(info.avatarId)} name={info.nickname || "Jugador"} size="lg" />
+          <div>
+            <StatusBadge tone="cyan">Datos en vivo</StatusBadge>
+            <h3 className="mt-2 font-heading text-2xl font-bold text-white">{info.nickname || "Jugador sin nickname"}</h3>
+            <p className="mt-1 text-sm text-neutral-400">
+              UID {info.accountId || "—"} · Región {info.region || getFreeFireRegionLabel(region)}
+            </p>
+          </div>
         </div>
-        <div className="rounded-lg border border-white/10 bg-black/20 px-4 py-3 text-right">
-          <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">Nivel</p>
-          <p className="text-3xl font-black text-orange-200">{info.level ?? "—"}</p>
+        <div className="arena-stat text-right">
+          <p className="arena-kicker">Nivel</p>
+          <p className="font-heading text-3xl font-bold text-orange-200">{info.level ?? "—"}</p>
         </div>
       </div>
 
@@ -35,7 +43,7 @@ export function FreeFireStatsPreview({ info, stats, region }: FreeFireStatsPrevi
       </div>
 
       {info.signature && (
-        <p className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-neutral-300">
+        <p className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-neutral-300">
           “{info.signature}”
         </p>
       )}
@@ -69,12 +77,12 @@ function StatTile({
   meta?: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+    <div className="arena-stat">
       <div className="flex items-center gap-2 text-neutral-500">
         <Icon className="size-4" />
-        <p className="text-xs uppercase tracking-[0.16em]">{label}</p>
+        <p className="arena-kicker">{label}</p>
       </div>
-      <p className="mt-2 text-lg font-black text-white">{value}</p>
+      <p className="mt-2 text-lg font-bold text-white">{value}</p>
       {meta && <p className="mt-1 text-xs text-neutral-500">{meta}</p>}
     </div>
   );
@@ -91,7 +99,7 @@ function ModeStats({
 }) {
   if (!bucket) {
     return (
-      <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+      <div className="arena-stat">
         <StatusBadge tone={tone}>{title}</StatusBadge>
         <p className="mt-3 text-sm text-neutral-500">Sin datos disponibles.</p>
       </div>
@@ -99,24 +107,14 @@ function ModeStats({
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-4">
+    <div className="arena-panel p-4">
       <StatusBadge tone={tone}>{title}</StatusBadge>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <Metric label="Partidas" value={formatNumber(bucket.gamesPlayed)} />
-        <Metric label="Victorias" value={formatNumber(bucket.wins)} />
-        <Metric label="Kills" value={formatNumber(bucket.kills)} />
-        <Metric label="Headshots" value={formatNumber(bucket.headshots)} />
-        <Metric label="Daño" value={formatNumber(bucket.damage)} />
-      </dl>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="mt-1 font-bold text-white">{value}</dd>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <CombatStat label="Partidas" value={bucket.gamesPlayed ?? 0} />
+        <CombatStat label="Victorias" value={bucket.wins ?? 0} tone="win" />
+        <CombatStat label="Kills" value={bucket.kills ?? 0} tone="kill" />
+        <CombatStat label="Headshots" value={bucket.headshots ?? 0} tone="headshot" />
+      </div>
     </div>
   );
 }
