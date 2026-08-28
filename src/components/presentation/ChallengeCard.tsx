@@ -24,28 +24,28 @@ export function ChallengeCard({
   accent: ChallengeTone;
 }) {
   return (
-    <article className="rounded-lg border border-white/10 bg-neutral-900/80 p-5 shadow-2xl shadow-black/25">
+    <article className="arena-panel p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <StatusBadge tone={accent}>{status}</StatusBadge>
-          <h3 className="mt-4 text-xl font-black tracking-tight text-white">{title}</h3>
+          <h3 className="mt-4 font-heading text-xl font-bold tracking-tight text-white">{title}</h3>
           <p className="mt-1 text-sm text-neutral-400">{mode}</p>
         </div>
-        <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-right">
-          <p className="text-xs uppercase tracking-[0.16em] text-neutral-500">Inicia</p>
+        <div className="arena-stat text-right">
+          <p className="arena-kicker">Inicia</p>
           <p className="text-sm font-bold text-white">{starts}</p>
         </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+        <div className="arena-stat">
           <div className="flex items-center gap-2 text-neutral-400">
-            <Coins className="size-4 text-yellow-300" />
+            <Coins className="size-4 text-amber-300" />
             Premio
           </div>
           <p className="mt-1 font-bold text-white">{prize}</p>
         </div>
-        <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+        <div className="arena-stat">
           <div className="flex items-center gap-2 text-neutral-400">
             <UsersRound className="size-4 text-cyan-300" />
             Cupos

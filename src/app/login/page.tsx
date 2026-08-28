@@ -7,11 +7,12 @@ import { useRouter } from "next/navigation";
 import { Loader2, LogIn } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
 const inputClass =
-  "w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20";
+  "arena-input";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -52,10 +53,14 @@ export default function LoginPage() {
     router.push(isProfileComplete(profile) ? redirectTo || "/dashboard" : "/register/completion");
   };
 
+  const nextPath = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirectTo") || "/dashboard" : "/dashboard";
+
   return (
     <AuthFormWrapper title="Iniciar sesión" subtitle="Ingresá a tu cuenta para competir, revisar Coins y ver rankings.">
       <form onSubmit={handleLogin} className="space-y-4">
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+        <GoogleAuthButton nextPath={nextPath} />
+        <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">o con email</p>
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-neutral-300">Email</span>
@@ -84,7 +89,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-500 disabled:opacity-60"
+          className="arena-btn w-full disabled:opacity-60"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
           {loading ? "Ingresando..." : "Ingresar"}

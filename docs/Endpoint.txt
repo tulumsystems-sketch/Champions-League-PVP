@@ -1,0 +1,223 @@
+Get Player Information
+GET
+/info
+Retrieves comprehensive player information including profile data, rankings, badges, clan membership, pet information, and more.
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/info
+Parameters
+region
+queryrequired
+Region code (sg, ind, br)
+uid
+queryrequired
+Player User ID (5-15 digits)
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "basicInfo": {
+    "accountId": "10000001",
+    "nickname": "Harold",
+    "level": 65,
+    "rank": 323,
+    "region": "SG",
+    "seasonId": 51
+  },
+  "captainBasicInfo": {
+    "accountId": "310531180",
+    "nickname": "GMAndrewYeti",
+    "level": 68,
+    "rank": 320,
+    "region": "SG"
+  },
+  "clanBasicInfo": {
+    "clanId": "1027439077",
+    "clanName": "Cpt.BOOYAH",
+    "clanLevel": 7,
+    "memberNum": 40,
+    "capacity": 55
+  },
+  "creditScoreInfo": {
+    "creditScore": 100,
+    "rewardState": 1,
+    "rewardType": 2
+  },
+  "diamondCostRes": {
+    "diamondCost": 390
+  },
+  "petInfo": {
+    "id": "1300000071",
+    "level": 7,
+    "exp": 6000
+  },
+  "profileInfo": {
+    "avatarId": "102000038",
+    "clothes": [
+      "214053001",
+      "204053011"
+    ]
+  },
+  "socialInfo": {
+    "accountId": "10000001",
+    "signature": "@freefireharold"
+  }
+}
+
+Get Player Statistics
+GET
+/stats
+Retrieves detailed gameplay statistics for a player across different game modes (Solo, Duo, Squad).
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/stats
+Parameters
+region
+queryrequired
+Region code (sg, ind, br)
+uid
+queryrequired
+Player User ID (5-15 digits)
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "brCareer_solo": {},
+  "brCareer_duo": {},
+  "brCareer_squad": {}
+}
+Get Game Assets and Images
+GET
+/image
+Retrieves in-game images and icons from the Free Fire asset database hosted on GitHub.
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/image
+Parameters
+itemID
+queryrequired
+The item ID to retrieve the image for from the game database
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "note": "Returns binary image data (image/png or image/jpeg)."
+}
+Get Craftland Map Information
+GET
+/craftland
+Retrieves detailed information about a specific Craftland custom map.
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/craftland
+Parameters
+region
+queryrequired
+Region code (sg, ind, br)
+code
+queryrequired
+The Craftland map code (URL-encoded if contains special characters)
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "map_info": {}
+}
+Get Player Wishlist
+GET
+/wishlist
+Retrieves the wishlist items for a specific player account.
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/wishlist
+Parameters
+region
+queryrequired
+Region code (sg, ind, br)
+uid
+queryrequired
+Player User ID (5-15 digits)
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "wishlist_items": []
+}
+Check Player Ban Status
+GET
+/bancheck
+Checks if a Free Fire player account is currently banned or has an active ban period.
+
+Server
+https://developers.freefirecommunity.com/api/v1
+Full endpoint: https://developers.freefirecommunity.com/api/v1/bancheck
+Parameters
+uid
+queryrequired
+The unique player User ID to check ban status for
+lang
+query
+Language for the response (defaults to English)
+x-api-key
+header
+Your API key (recommended authentication method)
+key
+query
+Alternative API key authentication in query string
+Discover more
+Reference
+Computer & Video Games
+Stats
+Response Example
+{
+  "status": "success",
+  "data": {
+    "is_banned": 0,
+    "period": 0
+  }
+}

@@ -1,4 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 import { cn } from "@/lib/utils";
 
@@ -8,11 +12,51 @@ type GamingShellProps = {
 };
 
 export function GamingShell({ children, className }: GamingShellProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const sparks = root.querySelectorAll("[data-spark]");
+    const ctx = gsap.context(() => {
+      sparks.forEach((spark, index) => {
+        gsap.to(spark, {
+          y: gsap.utils.random(-32, 32),
+          x: gsap.utils.random(-20, 20),
+          opacity: gsap.utils.random(0.12, 0.5),
+          duration: gsap.utils.random(5, 9),
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: index * 0.1,
+        });
+      });
+    }, root);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className={cn("relative min-h-screen overflow-hidden bg-neutral-950 text-white", className)}>
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(10,10,10,0.98),rgba(23,23,23,0.96)_45%,rgba(8,18,19,0.98))]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:46px_46px]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(90deg,rgba(234,88,12,0.24),rgba(20,184,166,0.18),rgba(22,163,74,0.14))] blur-3xl" />
+    <div ref={rootRef} className={cn("relative min-h-screen overflow-hidden text-white", className)}>
+      <div className="pointer-events-none absolute inset-0 arena-grid opacity-40" />
+      <div className="pointer-events-none absolute inset-0 arena-noise" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(255,83,24,0.14),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(46,230,255,0.08),transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/80 to-transparent" />
+      <div className="arena-scan" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {Array.from({ length: 20 }).map((_, index) => (
+          <span
+            key={index}
+            data-spark
+            className="absolute rounded-full bg-orange-300/70"
+            style={{
+              left: `${(index * 17) % 100}%`,
+              top: `${(index * 29) % 100}%`,
+              width: index % 3 === 0 ? 3 : 2,
+              height: index % 3 === 0 ? 3 : 2,
+            }}
+          />
+        ))}
+      </div>
       <div className="relative z-10">{children}</div>
     </div>
   );

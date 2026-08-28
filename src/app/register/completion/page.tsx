@@ -7,8 +7,14 @@ import { Loader2, ShieldCheck } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { FreeFireUidLookup } from "@/components/profile/FreeFireUidLookup";
+import { assertPlayableFreeFireAccount } from "@/lib/free-fire/guard";
+import type { CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
+import { normalizeFreeFireRegion } from "@/lib/free-fire/regions";
 import type { AuthenticatedProfile } from "@/lib/profile";
-import { getProfileUid } from "@/lib/profile";
+import { getProfileUid, isDuplicateUidError } from "@/lib/profile";
+import { persistFreeFireSnapshot } from "@/lib/player-stats";
+import { getFreeFireAvatarUrl } from "@/lib/free-fire/providers/community-api-provider";
 import { supabase } from "@/lib/supabase";
 
 export default function RegisterCompletionPage() {
@@ -21,8 +27,9 @@ export default function RegisterCompletionPage() {
 
 function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
   const [freefireUid, setFreefireUid] = useState(auth.profile?.freefire_uid ? getProfileUid(auth.profile) : "");
-  const [freefireRegion, setFreefireRegion] = useState("");
+  const [freefireRegion, setFreefireRegion] = useState(auth.profile?.freefire_region || "br");
   const [avatarUrl, setAvatarUrl] = useState(auth.profile?.avatar_url ?? "");
+  const [verifiedPlayer, setVerifiedPlayer] = useState<CommunityPlayerInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,11 +41,27 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
     setMessage(null);
     setError(null);
 
+    if (!freefireUid.trim() || !verifiedPlayer) {
+      setError("Consultá tu UID de Free Fire y esperá la ficha del jugador antes de continuar.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await assertPlayableFreeFireAccount(freefireUid);
+    } catch (uidError) {
+      setError(uidError instanceof Error ? uidError.message : "Ese UID de Free Fire no se puede usar.");
+      setLoading(false);
+      return;
+    }
+
+    const resolvedNickname = verifiedPlayer.nickname?.trim() || auth.profile?.nickname || auth.user.email?.split("@")[0] || "Jugador";
+
     const basePayload = {
       id: auth.user.id,
       email: auth.profile?.email || auth.user.email || null,
       provider: auth.profile?.provider || "email",
-      nickname: auth.profile?.nickname || auth.user.email?.split("@")[0] || "Jugador",
+      nickname: resolvedNickname,
       freefire_uid: freefireUid.trim(),
       avatar_url: avatarUrl.trim() || null,
       status: auth.profile?.status || "active",
@@ -47,7 +70,12 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
 
     const payloadWithRegion = {
       ...basePayload,
-      freefire_region: freefireRegion.trim() || null,
+      freefire_region: normalizeFreeFireRegion(freefireRegion),
+      freefire_level: verifiedPlayer?.level ?? auth.profile?.freefire_level ?? 0,
+      freefire_likes: verifiedPlayer?.liked ?? auth.profile?.freefire_likes ?? 0,
+      freefire_rank: verifiedPlayer?.rank ?? auth.profile?.freefire_rank ?? 0,
+      clan_name: verifiedPlayer?.clanName ?? auth.profile?.clan_name ?? null,
+      signature: verifiedPlayer?.signature ?? auth.profile?.signature ?? null,
     };
 
     let update = await supabase.from("profiles").upsert([payloadWithRegion], { onConflict: "id" });
@@ -57,9 +85,24 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
     }
 
     if (update.error) {
-      setError(update.error.message);
+      setError(
+        isDuplicateUidError(update.error.message)
+          ? "Ese UID de Free Fire ya está vinculado a otra cuenta."
+          : update.error.message,
+      );
       setLoading(false);
       return;
+    }
+
+    if (verifiedPlayer) {
+      await persistFreeFireSnapshot({
+        userId: auth.user.id,
+        uid: freefireUid.trim(),
+        region: normalizeFreeFireRegion(freefireRegion),
+        info: verifiedPlayer,
+        stats: null,
+        avatarUrl: getFreeFireAvatarUrl(verifiedPlayer.avatarId),
+      });
     }
 
     setMessage("Perfil completado. Te estamos llevando al dashboard.");
@@ -76,28 +119,25 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
         )}
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
 
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">UID Free Fire</span>
-          <input
-            type="text"
-            value={freefireUid}
-            onChange={(event) => setFreefireUid(event.target.value)}
-            required
-            placeholder="Ej: 234567890"
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-orange-400/60 focus:ring-2 focus:ring-orange-400/20"
-          />
-        </label>
-
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-neutral-300">Región Free Fire</span>
-          <input
-            type="text"
-            value={freefireRegion}
-            onChange={(event) => setFreefireRegion(event.target.value)}
-            placeholder="Ej: BR, LATAM, US"
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
-          />
-        </label>
+        <FreeFireUidLookup
+          uid={freefireUid}
+          region={freefireRegion}
+          userId={auth.user.id}
+          onUidChange={(value) => {
+            setFreefireUid(value);
+            setVerifiedPlayer(null);
+          }}
+          onRegionChange={(value) => {
+            setFreefireRegion(value);
+            setVerifiedPlayer(null);
+          }}
+          onPlayerLoaded={(info) => {
+            setVerifiedPlayer(info);
+            const avatar = getFreeFireAvatarUrl(info.avatarId);
+            if (avatar) setAvatarUrl(avatar);
+          }}
+          inputClassName="arena-input"
+        />
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-neutral-300">Avatar URL</span>
@@ -106,14 +146,14 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
             value={avatarUrl}
             onChange={(event) => setAvatarUrl(event.target.value)}
             placeholder="https://..."
-            className="w-full rounded-lg border border-white/10 bg-neutral-950 px-3 py-2.5 text-white outline-none transition placeholder:text-neutral-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20"
+            className="arena-input"
           />
         </label>
 
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2.5 text-sm font-black text-white shadow-lg shadow-orange-950/30 transition hover:bg-orange-500 disabled:opacity-60"
+          className="arena-btn w-full disabled:opacity-60"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
           {loading ? "Completando..." : "Completar perfil"}
