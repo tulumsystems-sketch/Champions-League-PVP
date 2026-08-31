@@ -31,9 +31,13 @@ Flujo: `release/mvp-ready` → `develop` (demo) → `main` (entrega).
 
 1. Importar el repo y desplegar **`develop`** primero (demo).
 2. Cargar las mismas variables, con `NEXT_PUBLIC_SITE_URL` = URL de Vercel.
-3. En Supabase Auth → Redirect URLs, agregar (Google y recuperar contraseña usan el mismo path):
-   - `http://localhost:3000/auth/callback`
-   - `https://TU-DOMINIO.vercel.app/auth/callback`
+3. En Supabase Auth → URL Configuration:
+   - Site URL: `https://championspvp.netlify.app` (con `https://`)
+   - Redirect URLs:
+     - `https://championspvp.netlify.app/**`
+     - `http://localhost:3000/**`
+   - Email Templates → Reset password, el enlace tiene que ir a la app con `token_hash`, no a `{{ .SiteURL }}` suelto:
+     `https://championspvp.netlify.app/auth/callback?token_hash={{ .TokenHash }}&type=recovery`
 4. Google Login: Client ID y Secret en Supabase Auth → Providers → Google. Hasta que eso no esté, el botón muestra el error y el email sigue funcionando.
 5. Cuando el cliente apruebe, mergear `develop` → `main` y apuntar producción a `main`.
 
