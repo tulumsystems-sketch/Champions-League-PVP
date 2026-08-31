@@ -31,7 +31,7 @@ Flujo: `release/mvp-ready` → `develop` (demo) → `main` (entrega).
 
 1. Importar el repo y desplegar **`develop`** primero (demo).
 2. Cargar las mismas variables, con `NEXT_PUBLIC_SITE_URL` = URL de Vercel.
-3. En Supabase Auth → Redirect URLs, agregar:
+3. En Supabase Auth → Redirect URLs, agregar (Google y recuperar contraseña usan el mismo path):
    - `http://localhost:3000/auth/callback`
    - `https://TU-DOMINIO.vercel.app/auth/callback`
 4. Google Login: Client ID y Secret en Supabase Auth → Providers → Google. Hasta que eso no esté, el botón muestra el error y el email sigue funcionando.

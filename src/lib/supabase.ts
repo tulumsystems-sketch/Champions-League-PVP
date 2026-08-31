@@ -28,7 +28,12 @@ function createSafeFallbackClient() {
       signInWithOAuth: reject,
       signOut: async () => ({ error: missingError }),
       resetPasswordForEmail: reject,
+      exchangeCodeForSession: reject,
+      getSession: async () => ({ data: { session: null }, error: missingError }),
       getUser: async () => ({ data: { user: null }, error: missingError }),
+      onAuthStateChange: () => ({
+        data: { subscription: { unsubscribe() {} } },
+      }),
       updateUser: reject,
       signUp: reject,
     },
