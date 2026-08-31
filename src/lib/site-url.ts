@@ -2,10 +2,19 @@ export const AUTH_CALLBACK_PATH = "/auth/callback";
 export const RESET_PASSWORD_PATH = "/reset-password";
 export const PASSWORD_RECOVERY_INTENT_KEY = "clpvp-password-recovery";
 
+function normalizeSiteUrl(value: string) {
+  const trimmed = value.trim().replace(/\/$/, "");
+  if (!trimmed) return "";
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function getSiteUrl() {
-  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
-  if (typeof window !== "undefined") return window.location.origin;
+  if (typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  if (fromEnv) return normalizeSiteUrl(fromEnv);
   return "http://localhost:3000";
 }
 
@@ -38,6 +47,7 @@ export function parseAuthRedirect(href: string) {
 
   return {
     code: url.searchParams.get("code"),
+    tokenHash: pick("token_hash"),
     next: pick("next") || "/dashboard",
     type: pick("type"),
     error: rawError ? decodeURIComponent(rawError.replace(/\+/g, " ")) : null,
@@ -45,6 +55,6 @@ export function parseAuthRedirect(href: string) {
 }
 
 export function isPasswordRecoveryRedirect(href: string, recoveryIntent = false) {
-  const { next, type } = parseAuthRedirect(href);
-  return recoveryIntent || type === "recovery" || next === RESET_PASSWORD_PATH;
+  const { next, type, tokenHash } = parseAuthRedirect(href);
+  return recoveryIntent || type === "recovery" || Boolean(tokenHash && type === "recovery") || next === RESET_PASSWORD_PATH;
 }

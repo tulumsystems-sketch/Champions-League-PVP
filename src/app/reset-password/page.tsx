@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, KeyRound, Loader2, ShieldAlert } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { establishSessionFromAuthUrl } from "@/lib/auth-recovery";
 import { parseAuthRedirect } from "@/lib/site-url";
 import { supabase } from "@/lib/supabase";
 
@@ -30,15 +31,16 @@ export default function ResetPasswordPage() {
     };
 
     const init = async () => {
-      const { code, error: redirectError } = parseAuthRedirect(window.location.href);
+      const href = window.location.href;
+      const { code, tokenHash, error: redirectError } = parseAuthRedirect(href);
 
       if (redirectError) {
         finish("El enlace de recuperación no es válido. Pedí uno nuevo.");
         return;
       }
 
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+      if (code || tokenHash) {
+        const { error: exchangeError } = await establishSessionFromAuthUrl(href);
         window.history.replaceState({}, "", "/reset-password");
         if (exchangeError) {
           finish("El enlace expiró o ya fue usado. Pedí uno nuevo desde recuperar contraseña.");

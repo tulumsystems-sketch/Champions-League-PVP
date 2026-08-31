@@ -51,7 +51,7 @@ Sin esto no se cobra de verdad ni Google entra:
    - `https://<PROJECT>.supabase.co/auth/v1/callback`
    - También el dominio de Vercel en Authorized JavaScript origins  
    Pegar **Client ID** y **Client Secret** en Supabase → Authentication → Providers → Google.  
-   Redirect URLs de la app: `https://DOMINIO/auth/callback` y `http://localhost:3000/auth/callback`. Recuperar contraseña redirige a ese mismo path (no a `/reset-password`).
+   Redirect URLs de la app: `https://championspvp.netlify.app/**` y `http://localhost:3000/**`. Site URL: `https://championspvp.netlify.app`. Recuperar contraseña usa `/auth/callback?token_hash=...&type=recovery`.
 
 3. **Cuenta Vercel** (o el host que usen) y dominio si no alcanza `*.vercel.app`.
 

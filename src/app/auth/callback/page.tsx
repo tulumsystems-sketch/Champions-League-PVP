@@ -7,6 +7,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 
 import { GamingShell } from "@/components/GamingShell";
 import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
+import { establishSessionFromAuthUrl } from "@/lib/auth-recovery";
 import {
   consumePasswordRecoveryIntent,
   isPasswordRecoveryRedirect,
@@ -31,25 +32,21 @@ export default function AuthCallbackPage() {
 
     const finish = async () => {
       const href = window.location.href;
-      const { code, next, error: redirectError } = parseAuthRedirect(href);
+      const { next, tokenHash } = parseAuthRedirect(href);
       const recoveryIntent = consumePasswordRecoveryIntent();
+      const fromUrl = await establishSessionFromAuthUrl(href);
 
-      if (redirectError) {
-        if (active) setError(redirectError);
+      if (fromUrl.error) {
+        if (active) setError(fromUrl.error);
         return;
       }
 
-      if (code) {
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        if (exchangeError) {
-          if (active) setError(exchangeError.message);
-          return;
-        }
-      } else {
+      if (!tokenHash && !fromUrl.recovery) {
         await new Promise((resolve) => window.setTimeout(resolve, 400));
       }
 
-      const isRecovery = recoveryEvent || isPasswordRecoveryRedirect(href, recoveryIntent);
+      const isRecovery =
+        fromUrl.recovery || recoveryEvent || isPasswordRecoveryRedirect(href, recoveryIntent);
 
       const {
         data: { user },
