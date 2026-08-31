@@ -53,7 +53,15 @@ export const DOCK_NAV: NavItem[] = MAIN_NAV.filter((item) => item.href !== "/pro
 
 export const COMING_SOON_NAV: NavItem[] = [];
 
-export const PUBLIC_ROUTES = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/register/completion"];
+export const PUBLIC_ROUTES = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/register/completion",
+  "/auth/callback",
+];
 
 export function isPublicRoute(pathname: string) {
   return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));

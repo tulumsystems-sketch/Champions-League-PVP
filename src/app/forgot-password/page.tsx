@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
+import { getAuthCallbackUrl, markPasswordRecoveryIntent } from "@/lib/site-url";
 import { supabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -19,8 +20,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
+    markPasswordRecoveryIntent();
+
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: getAuthCallbackUrl(),
     });
 
     if (resetError) {

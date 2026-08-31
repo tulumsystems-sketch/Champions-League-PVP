@@ -7,7 +7,15 @@ import { Swords, Trophy, UserRound } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
 import { cn } from "@/lib/utils";
 
-const HIDDEN_PATHS = ["/", "/login", "/register", "/forgot-password", "/reset-password", "/register/completion"];
+const HIDDEN_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/register/completion",
+  "/auth/callback",
+];
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Trophy },

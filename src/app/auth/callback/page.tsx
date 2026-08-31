@@ -7,6 +7,12 @@ import { Loader2, ShieldAlert } from "lucide-react";
 
 import { GamingShell } from "@/components/GamingShell";
 import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
+import {
+  consumePasswordRecoveryIntent,
+  isPasswordRecoveryRedirect,
+  parseAuthRedirect,
+  RESET_PASSWORD_PATH,
+} from "@/lib/site-url";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthCallbackPage() {
@@ -15,11 +21,23 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     let active = true;
+    let recoveryEvent = false;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") recoveryEvent = true;
+    });
 
     const finish = async () => {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
-      const next = url.searchParams.get("next") || "/dashboard";
+      const href = window.location.href;
+      const { code, next, error: redirectError } = parseAuthRedirect(href);
+      const recoveryIntent = consumePasswordRecoveryIntent();
+
+      if (redirectError) {
+        if (active) setError(redirectError);
+        return;
+      }
 
       if (code) {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
@@ -31,12 +49,19 @@ export default function AuthCallbackPage() {
         await new Promise((resolve) => window.setTimeout(resolve, 400));
       }
 
+      const isRecovery = recoveryEvent || isPasswordRecoveryRedirect(href, recoveryIntent);
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
-        router.replace("/login");
+        router.replace(isRecovery ? "/forgot-password" : "/login");
+        return;
+      }
+
+      if (isRecovery) {
+        router.replace(RESET_PASSWORD_PATH);
         return;
       }
 
@@ -79,12 +104,13 @@ export default function AuthCallbackPage() {
 
     finish().catch((unknownError) => {
       if (active) {
-        setError(unknownError instanceof Error ? unknownError.message : "No pudimos completar el acceso con Google.");
+        setError(unknownError instanceof Error ? unknownError.message : "No pudimos completar el acceso.");
       }
     });
 
     return () => {
       active = false;
+      subscription.unsubscribe();
     };
   }, [router]);
 
@@ -94,11 +120,16 @@ export default function AuthCallbackPage() {
         <div className="mx-auto flex min-h-[70vh] max-w-xl items-center justify-center px-4 py-10">
           <div className="rounded-lg border border-red-400/20 bg-red-500/10 p-6 text-center">
             <ShieldAlert className="mx-auto size-8 text-red-200" />
-            <h1 className="mt-4 text-xl font-black text-white">No pudimos entrar con Google</h1>
+            <h1 className="mt-4 text-xl font-black text-white">No pudimos completar el acceso</h1>
             <p className="mt-2 text-sm leading-6 text-red-100/80">{error}</p>
-            <Link href="/login" className="mt-5 inline-block text-sm font-bold text-orange-300">
-              Volver al login
-            </Link>
+            <div className="mt-5 flex justify-center gap-4">
+              <Link href="/forgot-password" className="text-sm font-bold text-orange-300">
+                Recuperar contraseña
+              </Link>
+              <Link href="/login" className="text-sm font-bold text-neutral-300">
+                Volver al login
+              </Link>
+            </div>
           </div>
         </div>
       </GamingShell>
