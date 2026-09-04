@@ -149,6 +149,7 @@ export default function RegisterPage() {
           }}
           onPlayerLoaded={(info) => setVerifiedPlayer(info)}
           inputClassName={inputClass}
+          preview="nickname"
         />
 
         <label className="space-y-1.5">

@@ -18,7 +18,7 @@ type AuthFormWrapperProps = {
 export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperProps) {
   return (
     <GamingShell>
-      <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_460px] lg:px-8">
+      <div className="mx-auto grid min-h-screen max-w-7xl items-start gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_460px] lg:items-center lg:px-8">
         <section className="hidden lg:block">
           <Link href="/" className="inline-flex items-center gap-3">
             <BrandMark />
@@ -49,8 +49,8 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
           </StaggerIn>
         </section>
 
-        <section className="w-full">
-          <div className="mx-auto w-full max-w-md">
+        <section className="w-full min-w-0">
+          <div className="mx-auto w-full min-w-0 max-w-md">
             <div className="mb-6 text-center lg:hidden">
               <Link href="/" className="inline-flex">
                 <BrandMark size="lg" />

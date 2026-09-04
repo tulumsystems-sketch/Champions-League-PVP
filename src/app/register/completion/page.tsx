@@ -137,6 +137,7 @@ function RegisterCompletionForm({ auth }: { auth: AuthenticatedProfile }) {
             if (avatar) setAvatarUrl(avatar);
           }}
           inputClassName="arena-input"
+          preview="nickname"
         />
 
         <label className="space-y-1.5">

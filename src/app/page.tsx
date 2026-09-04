@@ -1,185 +1,362 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  Coins,
   Crosshair,
-  Crown,
-  Gamepad2,
-  ShieldCheck,
+  Play,
+  Swords,
   Trophy,
-  UserRound,
   UsersRound,
   WalletCards,
 } from "lucide-react";
 
-import { FeatureCard } from "@/components/presentation/FeatureCard";
-import { StatCard } from "@/components/presentation/StatCard";
-import { StatusBadge } from "@/components/presentation/StatusBadge";
-import { BrandMark } from "@/components/hud/BrandMark";
-import { LivePulse } from "@/components/hud/LivePulse";
-import { GamingShell } from "@/components/GamingShell";
 import { StaggerIn } from "@/components/motion/StaggerIn";
+import { cn } from "@/lib/utils";
 
-const landingFeatures = [
+import "./landing.css";
+
+const navLinks = [
+  { href: "/", label: "inicio" },
+  { href: "#ecosistema", label: "arena" },
+  { href: "#flujo", label: "cómo se juega" },
+  { href: "#cta", label: "contacto" },
+];
+
+const modes = [
   {
-    title: "Desafíos PvP",
-    description: "Competencias temporales con reglas claras, cupos limitados y premios visibles.",
-    href: "/challenges",
-    accent: "orange" as const,
-    icon: Crosshair,
+    id: "1v1",
+    label: "Duelo",
+    copy: "Uno contra uno. Sin excusa, solo aim y cabeza fría.",
+    image: "/landing/mode-1v1.png",
   },
+  {
+    id: "2v2",
+    label: "Dúo",
+    copy: "Sincronía, trade y presión. El pozo se parte en dos.",
+    image: "/landing/mode-2v2.png",
+  },
+  {
+    id: "4v4",
+    label: "Escuadra",
+    copy: "Cuatro vs cuatro. Salas privadas y reglas blindadas.",
+    image: "/landing/mode-4v4.png",
+  },
+];
+
+const modules = [
   {
     title: "Salas privadas",
-    description: "Modos 1 vs 1, 2 vs 2, 3 vs 3 y 4 vs 4 con entrada en Coins y validación de resultado.",
+    copy: "Armá el reto, definí el pozo y cerrá el cupo. Ejemplo de copy.",
     href: "/rooms",
-    accent: "cyan" as const,
-    icon: UsersRound,
+    image: "/landing/module-salas.png",
+    featured: true,
   },
   {
-    title: "Ranking competitivo",
-    description: "Leaderboard de la arena: victorias, puntos y Coins ganadas.",
+    title: "Desafíos PvP",
+    copy: "Eventos con premio visible y duración limitada.",
+    href: "/challenges",
+    image: "/landing/module-desafios.png",
+  },
+  {
+    title: "Ranking",
+    copy: "Tabla global de la temporada. Los de arriba se ven.",
     href: "/ranking",
-    accent: "emerald" as const,
-    icon: Trophy,
+    image: "/landing/module-ranking.png",
   },
   {
-    title: "Wallet de Coins",
-    description: "Balance, recargas, retiros y movimientos. 1 Coin = 1 USD.",
+    title: "Wallet",
+    copy: "Carga, balance y retiro en un mismo lugar.",
     href: "/wallet",
-    accent: "yellow" as const,
-    icon: WalletCards,
-  },
-  {
-    title: "Perfil Free Fire",
-    description: "UID, nickname, avatar y estado de verificación del jugador.",
-    href: "/profile",
-    accent: "red" as const,
-    icon: UserRound,
+    image: "/landing/module-wallet.png",
   },
 ];
 
 export default function HomePage() {
+  const [activeMode, setActiveMode] = useState(modes[2].id);
+
   return (
-    <GamingShell>
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-[-12%] top-[-20%] size-[520px] rounded-full bg-orange-500/18 blur-[120px]" />
-          <div className="absolute right-[-8%] top-[10%] size-[420px] rounded-full bg-cyan-400/12 blur-[110px]" />
-          <div className="absolute bottom-[-20%] left-1/3 size-[380px] rounded-full bg-amber-400/8 blur-[100px]" />
+    <div className="landing-root">
+      <section className="relative min-h-svh overflow-hidden">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div className="absolute inset-0 bg-[#040204]" />
+          <div className="absolute inset-0 lg:hidden">
+            <Image
+              src="/landing/hero-champion.png"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-[center_18%] opacity-45"
+            />
+          </div>
+          <div className="absolute inset-y-0 right-0 hidden w-[64%] lg:block">
+            <Image
+              src="/landing/hero-champion.png"
+              alt=""
+              fill
+              priority
+              sizes="64vw"
+              className="object-cover object-[center_12%]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#040204] via-[#040204]/35 to-transparent" />
+          </div>
+          <div className="absolute inset-0 bg-[radial-gradient(900px_480px_at_12%_0%,rgba(255,22,56,0.16),transparent_56%)]" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#040204] to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#040204] via-[#040204]/70 to-transparent" />
         </div>
 
-        <div className="relative mx-auto flex min-h-[92svh] max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-          <nav className="flex items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-3 font-heading font-bold text-white">
-              <BrandMark />
-              <span className="text-sm uppercase tracking-[0.22em] sm:text-base">Champions League PVP</span>
+        <div className="relative mx-auto flex min-h-svh max-w-[1380px] flex-col px-4 py-5 sm:px-6 lg:px-10">
+          <header className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[auto_1fr_auto]">
+            <Link href="/" className="font-heading text-2xl font-bold tracking-[0.18em] text-white">
+              CLP
             </Link>
-            <div className="flex items-center gap-2">
-              <Link href="/login" className="arena-btn-ghost hidden sm:inline-flex">
-                Ingresar
-              </Link>
-              <Link href="/register" className="arena-btn">
-                Crear cuenta
-                <ArrowRight className="size-4" />
-              </Link>
-            </div>
-          </nav>
+            <nav className="hidden items-center justify-center gap-8 lg:flex">
+              {navLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-[13px] lowercase tracking-wide text-white/70 transition hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <Link href="/login" className="landing-nav-cta justify-self-end">
+              Ingresar
+            </Link>
+          </header>
 
-          <div className="flex flex-1 items-center py-14">
-            <div className="max-w-3xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge tone="orange">Arena competitiva</StatusBadge>
-                <LivePulse label="Online" />
-              </div>
-              <h1 className="mt-6 max-w-4xl font-heading text-5xl font-bold leading-[0.94] tracking-tight text-white sm:text-6xl lg:text-7xl">
-                Champions League{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-200 to-cyan-300">
-                  PVP
-                </span>
-              </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-200 sm:text-xl">
-                Torneos, salas privadas, ranking y Coins. Entrá, competí y cobrá. La arena ya está en línea.
+          <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:py-6">
+            <div className="max-w-xl">
+              <p className="text-sm font-semibold tracking-wide text-red-400">
+                Un nuevo universo, una nueva temporada
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/login" className="arena-btn">
-                  Entrar a la plataforma
-                  <ArrowRight className="size-4" />
-                </Link>
-                <Link href="/register" className="arena-btn-ghost">
-                  Crear cuenta
-                </Link>
+              <h1 className="mt-4 font-heading text-[3.2rem] font-bold leading-[0.88] tracking-tight text-white sm:text-7xl lg:text-[5.4rem]">
+                CHAMPIONS
+                <span className="block">LEAGUE PVP</span>
+              </h1>
+              <p className="mt-6 max-w-md text-sm leading-7 text-white/70 sm:text-base">
+                Copy de ejemplo. Acá va el pitch corto: competís en salas, cobrás en Coins y subís el ranking.
+                El personaje de fondo entra después.
+              </p>
+              <div className="mt-8 flex items-center gap-4 text-white/80">
+                <Swords className="size-5" />
+                <UsersRound className="size-5" />
+                <Trophy className="size-5" />
+                <WalletCards className="size-5" />
+                <Crosshair className="size-5" />
               </div>
             </div>
+
+            <aside className="landing-glass relative z-10 hidden rounded-2xl p-6 lg:block">
+              <p className="font-heading text-lg font-bold tracking-[0.28em] text-red-400">PVP</p>
+              <p className="mt-4 text-sm leading-6 text-white/70">
+                Card flotante de ejemplo. Marca, regla o dato de temporada. Se apoya sobre el artwork
+                cuando esté.
+              </p>
+            </aside>
           </div>
 
-          <StaggerIn className="grid gap-3 pb-8 sm:grid-cols-3">
-            <div className="arena-stat">
-              <p className="arena-kicker">Proyección</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-white">+300</p>
-              <p className="text-sm text-neutral-400">jugadores</p>
+          <div className="grid items-end gap-6 pb-6 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <p className="mb-3 text-sm font-medium text-white">Modalidades</p>
+              <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:overflow-visible lg:px-0">
+                {modes.map((mode) => {
+                  const active = mode.id === activeMode;
+                  return (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      data-active={active}
+                      onClick={() => setActiveMode(mode.id)}
+                      className={cn(
+                        "landing-portrait relative shrink-0 overflow-hidden rounded-2xl text-left ring-1 ring-white/10 transition",
+                        active ? "h-52 w-44 sm:w-52" : "h-40 w-28 sm:w-32",
+                      )}
+                    >
+                      <Image
+                        src={mode.image}
+                        alt=""
+                        fill
+                        sizes="208px"
+                        className="object-cover"
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/10" />
+                      <span className="absolute left-3 top-3 z-10 text-[11px] font-bold tracking-[0.18em] text-white/80">
+                        {mode.id}
+                      </span>
+                      {active ? (
+                        <span className="absolute inset-x-0 bottom-0 z-10 p-3">
+                          <span className="block font-heading text-lg font-bold text-white">{mode.label}</span>
+                          <span className="mt-1 block text-[11px] leading-4 text-white/65">{mode.copy}</span>
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex w-40 gap-1">
+                {modes.map((mode) => (
+                  <span
+                    key={mode.id}
+                    className={cn(
+                      "h-0.5 flex-1 rounded-full",
+                      mode.id === activeMode ? "bg-white" : "bg-white/20",
+                    )}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="arena-stat">
-              <p className="arena-kicker">Economía</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-amber-200">Coins</p>
-              <p className="text-sm text-neutral-400">1 Coin = 1 USD</p>
-            </div>
-            <div className="arena-stat">
-              <p className="arena-kicker">Modos</p>
-              <p className="mt-2 font-heading text-3xl font-bold text-cyan-200">PvP</p>
-              <p className="text-sm text-neutral-400">desafíos y salas</p>
-            </div>
-          </StaggerIn>
+
+            <article className="landing-glass flex items-center gap-4 rounded-2xl p-3 sm:p-4">
+              <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10">
+                <Image
+                  src="/landing/arena-preview.png"
+                  alt=""
+                  fill
+                  sizes="144px"
+                  className="object-cover"
+                />
+                <span className="absolute inset-0 grid place-items-center bg-black/25">
+                  <span className="grid size-11 place-items-center rounded-full bg-white text-black">
+                    <Play className="size-4 fill-black" />
+                  </span>
+                </span>
+              </div>
+              <div>
+                <p className="font-heading text-lg font-bold text-white">La arena</p>
+                <p className="mt-1 text-xs leading-5 text-white/60 sm:text-sm">
+                  Preview de ejemplo. Acá entra trailer, mapa o recap de temporada.
+                </p>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
-      <section className="border-y border-white/8 bg-[#07080e]/80 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <StatusBadge tone="cyan">Módulos</StatusBadge>
-              <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-white">Toda la arena, un solo HUD</h2>
-            </div>
-            <p className="max-w-xl text-sm leading-6 text-neutral-400">
-              Desafíos, salas, ranking, wallet y perfil: la misma competencia, ahora con lectura de combate.
+      <section id="ecosistema" className="relative border-t border-white/8 bg-[#070306] py-20">
+        <div className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-10">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-red-400">Ecosistema</p>
+            <h2 className="mt-3 font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              Cuatro módulos. Una sola operación
+            </h2>
+            <p className="mt-4 max-w-lg text-sm leading-6 text-white/55">
+              Copy de ejemplo. Abajo no van cinco cards iguales: una featured y tres de apoyo.
             </p>
           </div>
 
-          <StaggerIn className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {landingFeatures.map((feature) => (
-              <FeatureCard key={feature.title} {...feature} />
+          <StaggerIn className="mt-10 grid gap-4 lg:grid-cols-12">
+            {modules.map((item) => (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={cn(
+                  "landing-glass group relative overflow-hidden rounded-3xl p-7 transition hover:border-red-500/40",
+                  item.featured ? "min-h-[340px] lg:col-span-7 lg:row-span-3" : "lg:col-span-5",
+                )}
+              >
+                <Image
+                  src={item.image}
+                  alt=""
+                  fill
+                  sizes={item.featured ? "60vw" : "40vw"}
+                  className="object-cover opacity-35 transition group-hover:opacity-45"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#070306] via-[#070306]/70 to-black/20" />
+                <div className="relative z-10">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-red-400">
+                    {item.featured ? "Principal" : "Módulo"}
+                  </p>
+                  <h3 className="mt-6 font-heading text-3xl font-bold text-white">{item.title}</h3>
+                  <p className="mt-3 max-w-md text-sm leading-6 text-white/70">{item.copy}</p>
+                  <span className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-white/80">
+                    Entrar
+                    <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </Link>
             ))}
           </StaggerIn>
         </div>
       </section>
 
-      <section className="bg-[#05060a] py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <StatusBadge tone="orange">Cómo se juega</StatusBadge>
-          <h2 className="mt-4 font-heading text-3xl font-bold text-white">Tres pasos a la arena</h2>
-          <StaggerIn className="mt-8 grid gap-4 md:grid-cols-3">
+      <section id="flujo" className="bg-[#040204] py-20">
+        <div className="mx-auto max-w-[1380px] px-4 sm:px-6 lg:px-10">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-red-400">Flujo</p>
+          <h2 className="mt-3 font-heading text-4xl font-bold text-white sm:text-5xl">Tres pasos</h2>
+          <div className="mt-12 grid gap-0 md:grid-cols-3">
             {[
-              { step: "01", title: "Vinculá tu UID", copy: "Tu identidad de Free Fire entra al perfil y queda lista para competir." },
-              { step: "02", title: "Cargá Coins", copy: "Recargás, un admin confirma, y ya podés inscribirte o crear salas." },
-              { step: "03", title: "Competí y cobrá", copy: "Desafíos y 1v1 a 4v4. El ranking de esta plataforma se arma acá." },
-            ].map((item) => (
-              <article key={item.step} className="arena-panel p-6">
-                <p className="font-heading text-3xl font-bold text-orange-300">{item.step}</p>
-                <h3 className="mt-3 font-heading text-xl font-bold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-neutral-400">{item.copy}</p>
+              { step: "01", title: "Vinculá UID", copy: "Identidad de Free Fire lista para competir." },
+              { step: "02", title: "Cargá Coins", copy: "Entrá al pozo cuando el saldo está confirmado." },
+              { step: "03", title: "Competí y cobrá", copy: "Resultado validado. Ranking y wallet se actualizan." },
+            ].map((item, index) => (
+              <article
+                key={item.step}
+                className={cn(
+                  "relative px-1 py-2 md:px-8",
+                  index > 0 && "md:border-l md:border-red-500/25",
+                )}
+              >
+                <p className="font-heading text-6xl font-bold text-red-500/80">{item.step}</p>
+                <h3 className="mt-6 font-heading text-2xl font-bold text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/50">{item.copy}</p>
               </article>
             ))}
-          </StaggerIn>
+          </div>
         </div>
-
-        <StaggerIn className="mx-auto mt-12 grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
-          <StatCard icon={Gamepad2} label="Partidas" value="128" meta="Esta semana" tone="orange" />
-          <StatCard icon={Crown} label="Victorias" value="42" meta="Top 3%" tone="emerald" />
-          <StatCard icon={Coins} label="Coins" value="760" meta="Balance actual" tone="yellow" />
-          <StatCard icon={ShieldCheck} label="UID" value="OK" meta="Perfil verificado" tone="cyan" />
-        </StaggerIn>
       </section>
-    </GamingShell>
+
+      <section className="border-y border-white/8 bg-[#0a0406]">
+        <div className="mx-auto grid max-w-[1380px] grid-cols-2 lg:grid-cols-4">
+          {[
+            { value: "300+", label: "Jugadores" },
+            { value: "1:1", label: "Coin / USD" },
+            { value: "1–4", label: "Modalidades" },
+            { value: "24/7", label: "Salas abiertas" },
+          ].map((item, index) => (
+            <div key={item.label} className="relative px-6 py-10">
+              {index > 0 ? (
+                <span className="landing-stat-rule absolute inset-y-6 left-0 hidden w-px lg:block" />
+              ) : null}
+              <p className="font-heading text-4xl font-bold text-white">{item.value}</p>
+              <p className="mt-2 text-sm text-white/45">{item.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="cta" className="relative overflow-hidden py-24">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(680px_280px_at_50%_0%,rgba(255,22,56,0.22),transparent_60%)]" />
+        <div className="relative mx-auto max-w-3xl px-4 text-center">
+          <h2 className="font-heading text-4xl font-bold text-white sm:text-6xl">Entrá a la temporada</h2>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/55">
+            Copy de ejemplo. Cierre con un solo CTA, sin segunda fila de botones.
+          </p>
+          <Link href="/register" className="landing-btn mt-8">
+            Crear cuenta
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/8 px-4 py-8 sm:px-6 lg:px-10">
+        <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-4 text-xs text-white/40">
+          <p className="font-heading tracking-[0.2em] text-white/70">CLP</p>
+          <p>Champions League PVP · copy de ejemplo</p>
+          <div className="hidden items-center gap-4 sm:flex">
+            <Link href="/login" className="hover:text-white">
+              Ingresar
+            </Link>
+            <Link href="/register" className="hover:text-white">
+              Crear cuenta
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

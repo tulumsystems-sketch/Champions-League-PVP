@@ -29,6 +29,7 @@ export function GamingShell({ children, className }: GamingShellProps) {
           yoyo: true,
           ease: "sine.inOut",
           delay: index * 0.1,
+          force3D: true,
         });
       });
     }, root);
@@ -36,18 +37,18 @@ export function GamingShell({ children, className }: GamingShellProps) {
   }, []);
 
   return (
-    <div ref={rootRef} className={cn("relative min-h-screen overflow-hidden text-white", className)}>
-      <div className="pointer-events-none absolute inset-0 arena-grid opacity-40" />
-      <div className="pointer-events-none absolute inset-0 arena-noise" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(255,83,24,0.14),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(46,230,255,0.08),transparent_34%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/80 to-transparent" />
-      <div className="arena-scan" />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div ref={rootRef} className={cn("relative min-h-screen text-white", className)}>
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute inset-0 arena-grid opacity-40" />
+        <div className="absolute inset-0 arena-noise" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(255,83,24,0.14),transparent_38%),radial-gradient(circle_at_92%_8%,rgba(46,230,255,0.08),transparent_34%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-400/80 to-transparent" />
+        <div className="arena-scan" />
         {Array.from({ length: 20 }).map((_, index) => (
           <span
             key={index}
             data-spark
-            className="absolute rounded-full bg-orange-300/70"
+            className="absolute rounded-full bg-orange-300/70 will-change-transform"
             style={{
               left: `${(index * 17) % 100}%`,
               top: `${(index * 29) % 100}%`,

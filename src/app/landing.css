@@ -1,0 +1,100 @@
+body:has(.landing-root) {
+  background: #040204;
+  background-image: none;
+}
+
+.landing-root {
+  --land-red: #ff1638;
+  --land-red-deep: #9b0018;
+  --land-ink: #040204;
+  color: #f6f1f2;
+  background: #040204;
+}
+
+.landing-glass {
+  background: linear-gradient(180deg, rgb(18 8 12 / 62%), rgb(8 4 6 / 48%));
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgb(255 255 255 / 12%);
+  box-shadow:
+    0 24px 60px rgb(0 0 0 / 40%),
+    inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+.landing-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.7rem;
+  background: rgb(18 10 14 / 72%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  padding: 0.62rem 1.05rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.landing-nav-cta:hover {
+  background: rgb(255 22 56 / 16%);
+  border-color: rgb(255 22 56 / 45%);
+  transform: translateY(-1px);
+}
+
+.landing-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(180deg, #ff3b52 0%, #ff1638 55%, #c40022 100%);
+  padding: 0.88rem 1.35rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  box-shadow:
+    0 14px 36px rgb(255 22 56 / 32%),
+    inset 0 1px 0 rgb(255 255 255 / 22%);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.landing-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.landing-figure {
+  background:
+    radial-gradient(ellipse 48% 70% at 52% 42%, rgb(255 22 56 / 28%), transparent 62%),
+    radial-gradient(ellipse 70% 80% at 60% 55%, rgb(80 0 18 / 55%), transparent 70%),
+    linear-gradient(180deg, transparent 8%, rgb(4 2 4 / 35%) 100%);
+}
+
+.landing-figure-slot {
+  mask-image: linear-gradient(180deg, black 55%, transparent 100%);
+}
+
+.landing-portrait {
+  background: #12060a;
+}
+
+.landing-portrait[data-active="true"] {
+  box-shadow: 0 0 0 1px rgb(255 22 56 / 55%), 0 18px 40px rgb(255 22 56 / 18%);
+}
+
+.landing-rail {
+  height: 2px;
+  background: rgb(255 255 255 / 16%);
+}
+
+.landing-rail > span {
+  display: block;
+  height: 100%;
+  background: #fff;
+}
+
+.landing-stat-rule {
+  background: linear-gradient(180deg, transparent, rgb(255 22 56 / 55%), transparent);
+}
