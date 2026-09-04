@@ -30,7 +30,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const navRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
 
   const displayName = getProfileName(auth.profile, auth.user);
