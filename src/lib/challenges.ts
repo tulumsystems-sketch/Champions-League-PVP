@@ -132,6 +132,37 @@ export function challengePrizeLabel(challenge: Pick<Challenge, "prizeFirst" | "p
   return `1° ${challenge.prizeFirst} · 2° ${challenge.prizeSecond} · 3° ${challenge.prizeThird} Coins`;
 }
 
+export function challengeStatusLabel(status: string | null | undefined) {
+  if (status === "upcoming" || status === "scheduled") return "Próximo";
+  if (status === "completed") return "Cerrado";
+  if (status === "cancelled") return "Cancelado";
+  return "En curso";
+}
+
+export function challengeStatusTone(status: string | null | undefined): "orange" | "cyan" | "emerald" | "red" {
+  if (status === "upcoming" || status === "scheduled") return "orange";
+  if (status === "completed") return "cyan";
+  if (status === "cancelled") return "red";
+  return "emerald";
+}
+
+export function isChallengeUpcoming(status: string | null | undefined) {
+  return status === "upcoming" || status === "scheduled";
+}
+
+export function isChallengeJoinable(status: string | null | undefined) {
+  return status === "active";
+}
+
+export function challengeBannerSrc(metric: string | null | undefined) {
+  if (metric === "kills") return "/banners/challenge-kills.png";
+  if (metric === "wins") return "/banners/challenge-wins.png";
+  if (metric === "headshots") return "/banners/challenge-headshots.png";
+  if (metric === "damage") return "/banners/challenge-damage.png";
+  if (metric === "points" || metric === "ranking_points") return "/banners/challenge-points.png";
+  return "/banners/challenge-br.png";
+}
+
 function rpcError(message: string) {
   return message.replace("ERROR: ", "").replace(/^P0001:\s*/, "");
 }
@@ -324,7 +355,7 @@ export async function joinChallenge(challengeId: string, userId: string) {
 
   const challenge = await getChallengeById(challengeId);
 
-  if (!challenge || challenge.status !== "active") {
+  if (!challenge || !isChallengeJoinable(challenge.status)) {
     throw new Error("Este desafío no está disponible para inscripción.");
   }
 

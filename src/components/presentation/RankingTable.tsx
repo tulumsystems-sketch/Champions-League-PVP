@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 export function RankingTable({
   rows,
   title = "Top jugadores",
-  emptyMessage = "Todavía no hay jugadores en el ranking. Jugá salas o desafíos para aparecer.",
+  emptyMessage = "Todavía no hay jugadores rankeados. Cerrá un desafío para aparecer acá.",
   highlightUserId,
 }: {
   rows: LeaderboardEntry[];
@@ -70,7 +70,7 @@ export function RankingTable({
                     key={row.id}
                     className={cn(
                       "transition-colors",
-                      isMine && "bg-orange-500/10",
+                      isMine && "bg-arena/10",
                       place === 1 && !isMine && "bg-amber-500/5",
                     )}
                   >
@@ -79,12 +79,12 @@ export function RankingTable({
                     </td>
                     <td className="px-5 py-4 font-bold text-white">
                       {row.nickname}
-                      {isMine ? <span className="ml-2 text-[10px] font-black uppercase tracking-wider text-orange-300">Vos</span> : null}
+                      {isMine ? <span className="ml-2 text-[10px] font-black uppercase tracking-wider text-arena">Vos</span> : null}
                     </td>
                     <td className="px-5 py-4 text-emerald-200"><CountUp value={row.wins} /></td>
                     <td className="px-5 py-4 text-neutral-300"><CountUp value={row.participations} /></td>
                     <td className="px-5 py-4 text-amber-200"><CountUp value={row.coinsWon} /></td>
-                    <td className="px-5 py-4 font-bold text-orange-200"><CountUp value={row.points} /></td>
+                    <td className="px-5 py-4 font-bold text-arena"><CountUp value={row.points} /></td>
                   </tr>
                 );
               })}

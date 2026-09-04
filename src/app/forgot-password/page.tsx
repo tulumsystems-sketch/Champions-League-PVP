@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
-import { getAuthCallbackUrl, markPasswordRecoveryIntent } from "@/lib/site-url";
+import { getPasswordRecoveryRedirectUrl, markPasswordRecoveryIntent } from "@/lib/site-url";
+import { translateAuthError } from "@/lib/auth-recovery";
 import { supabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
@@ -20,14 +21,14 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    markPasswordRecoveryIntent();
+    markPasswordRecoveryIntent(email);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: getAuthCallbackUrl(),
+      redirectTo: getPasswordRecoveryRedirectUrl(),
     });
 
     if (resetError) {
-      setError(resetError.message);
+      setError(translateAuthError(resetError.message));
     } else {
       setSent(true);
     }
@@ -41,9 +42,13 @@ export default function ForgotPasswordPage() {
           <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4 text-center">
             <p className="text-sm font-bold text-emerald-200">Enlace enviado</p>
             <p className="mt-1 text-sm leading-6 text-neutral-400">
-              Revisá <span className="font-semibold text-white">{email}</span> y seguí las instrucciones.
+              Revisá <span className="font-semibold text-white">{email}</span>. Abrí el enlace en este mismo navegador.
+              Si el correo trae un código de 6 dígitos, también podés usarlo acá.
             </p>
           </div>
+          <Link href="/reset-password" className="arena-btn flex w-full items-center justify-center">
+            Ya tengo el código
+          </Link>
           <Link href="/login" className="flex items-center justify-center gap-2 text-sm text-neutral-400 transition hover:text-white">
             <ArrowLeft className="size-4" />
             Volver al inicio de sesión

@@ -8,7 +8,8 @@ import { Loader2, LogIn } from "lucide-react";
 
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
-import { isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
+import { ensurePlayerProfile, isProfileComplete } from "@/lib/profile";
+import { translateAuthError } from "@/lib/auth-recovery";
 import { supabase } from "@/lib/supabase";
 
 const inputClass =
@@ -32,19 +33,16 @@ export default function LoginPage() {
     });
 
     if (loginError || !data.user) {
-      setError(loginError?.message || "No pudimos iniciar sesión.");
+      setError(translateAuthError(loginError?.message, "No pudimos iniciar sesión."));
       setLoading(false);
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select(PROFILE_SELECT)
-      .eq("id", data.user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      setError(profileError.message);
+    let profile;
+    try {
+      profile = await ensurePlayerProfile(data.user);
+    } catch (profileError) {
+      setError(profileError instanceof Error ? profileError.message : "No pudimos cargar tu perfil.");
       setLoading(false);
       return;
     }
@@ -53,13 +51,11 @@ export default function LoginPage() {
     router.push(isProfileComplete(profile) ? redirectTo || "/dashboard" : "/register/completion");
   };
 
-  const nextPath = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("redirectTo") || "/dashboard" : "/dashboard";
-
   return (
     <AuthFormWrapper title="Iniciar sesión" subtitle="Ingresá a tu cuenta para competir, revisar Coins y ver rankings.">
       <form onSubmit={handleLogin} className="space-y-4">
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
-        <GoogleAuthButton nextPath={nextPath} />
+        <GoogleAuthButton />
         <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-neutral-500">o con email</p>
 
         <label className="space-y-1.5">
@@ -99,7 +95,7 @@ export default function LoginPage() {
           <Link href="/forgot-password" className="text-neutral-400 transition hover:text-white">
             ¿Olvidaste tu contraseña?
           </Link>
-          <Link href="/register" className="font-bold text-orange-300 transition hover:text-orange-200">
+          <Link href="/register" className="font-bold text-arena transition hover:text-white">
             Crear cuenta
           </Link>
         </div>

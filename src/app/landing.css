@@ -1,6 +1,23 @@
+html:has(.landing-root) {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing-root) {
+    scroll-behavior: auto;
+  }
+}
+
 body:has(.landing-root) {
   background: #040204;
   background-image: none;
+}
+
+.landing-header {
+  border-bottom: 1px solid rgb(255 255 255 / 8%);
+  background: rgb(4 2 4 / 78%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .landing-root {
@@ -9,6 +26,10 @@ body:has(.landing-root) {
   --land-ink: #040204;
   color: #f6f1f2;
   background: #040204;
+}
+
+.landing-root section[id] {
+  scroll-margin-top: 4.75rem;
 }
 
 .landing-glass {

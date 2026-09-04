@@ -159,7 +159,7 @@ export function FreeFireUidLookup({
             type="button"
             onClick={handleLookup}
             disabled={loading || !uid.trim()}
-            className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-4 text-sm font-black text-cyan-100 transition hover:bg-cyan-500/20 disabled:opacity-60 @min-[22rem]:w-auto"
+            className="arena-btn h-11 w-full shrink-0 disabled:opacity-60 @min-[22rem]:w-auto"
           >
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
             {loading ? "Consultando..." : preview === "nickname" ? "Verificar UID" : "Consultar stats"}

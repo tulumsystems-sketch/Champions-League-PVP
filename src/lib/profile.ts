@@ -1,5 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 
+import { supabase } from "@/lib/supabase";
+
 export type PlayerProfile = {
   id: string;
   email: string | null;
@@ -66,4 +68,63 @@ export function getInitials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+}
+
+export async function ensurePlayerProfile(user: User) {
+  const { data: existing, error: existingError } = await supabase
+    .from("profiles")
+    .select(PROFILE_SELECT)
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+  if (existing) {
+    return existing as PlayerProfile;
+  }
+
+  const meta = user.user_metadata || {};
+  const email = user.email || null;
+  const nickname =
+    String(meta.nickname || meta.full_name || meta.name || "")
+      .trim() || email?.split("@")[0] || "Jugador";
+  const provider = user.app_metadata?.provider === "google" ? "google" : String(meta.provider || "email");
+
+  const { error: upsertError } = await supabase.from("profiles").upsert(
+    [
+      {
+        id: user.id,
+        email,
+        provider,
+        nickname,
+        freefire_uid: typeof meta.freefire_uid === "string" ? meta.freefire_uid.trim() || null : null,
+        freefire_region: typeof meta.freefire_region === "string" ? meta.freefire_region : null,
+        avatar_url: typeof meta.avatar_url === "string" ? meta.avatar_url : null,
+        status: "active",
+        created_at: new Date().toISOString(),
+      },
+    ],
+    { onConflict: "id" },
+  );
+
+  if (upsertError) {
+    throw new Error(
+      isDuplicateUidError(upsertError.message)
+        ? "Ese UID de Free Fire ya está vinculado a otra cuenta."
+        : upsertError.message,
+    );
+  }
+
+  const { data: created, error: createdError } = await supabase
+    .from("profiles")
+    .select(PROFILE_SELECT)
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (createdError) {
+    throw new Error(createdError.message);
+  }
+
+  return (created || null) as PlayerProfile | null;
 }

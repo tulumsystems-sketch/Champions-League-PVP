@@ -25,7 +25,7 @@ export function AppSidebar({ auth, onNavigate, className }: AppSidebarProps) {
     <aside className={cn("flex h-full flex-col border-r border-white/10 bg-neutral-950/95", className)}>
       <div className="border-b border-white/10 p-5">
         <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-3 font-black text-white">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-orange-600 shadow-lg shadow-orange-950/40">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-arena shadow-[0_10px_24px_rgba(255,22,56,0.32)]">
             <Swords className="size-5" />
           </span>
           <div className="min-w-0">
@@ -44,7 +44,7 @@ export function AppSidebar({ auth, onNavigate, className }: AppSidebarProps) {
 
       <div className="border-t border-white/10 p-4">
         <div className="mb-3 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
-          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-orange-400/30 bg-gradient-to-br from-orange-500/30 to-cyan-500/20 text-sm font-black text-white">
+          <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-arena/30 bg-gradient-to-br from-arena/30 to-[#9b0018]/40 text-sm font-black text-white">
             {auth.profile?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={auth.profile.avatar_url} alt={displayName} className="size-full object-cover" />
@@ -110,14 +110,14 @@ function NavGroup({
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
                   active
-                    ? "bg-orange-600 text-white shadow-lg shadow-orange-950/30"
+                    ? "bg-arena text-white shadow-[0_10px_24px_rgba(255,22,56,0.28)]"
                     : "text-neutral-400 hover:bg-white/5 hover:text-white",
                 )}
               >
                 <Icon className="size-4 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">{item.label}</p>
-                  {item.description && active && <p className="truncate text-xs text-orange-100/70">{item.description}</p>}
+                  {item.description && active && <p className="truncate text-xs text-white/70">{item.description}</p>}
                 </div>
               </Link>
             </li>

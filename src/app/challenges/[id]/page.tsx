@@ -1,18 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { CalendarDays, Coins, Loader2, RefreshCw, ShieldCheck, Trophy, UsersRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, Coins, Loader2, RefreshCw, ShieldCheck, Trophy, UsersRound } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { RankMedal } from "@/components/hud/RankMedal";
+import { PrizePodium } from "@/components/presentation/PrizePodium";
+import { EmptyPanel, ErrorPanel, LoadingPanel } from "@/components/presentation/FeedbackPanel";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import type { AuthenticatedProfile } from "@/lib/profile";
 import {
-  challengePrizeLabel,
+  challengeBannerSrc,
+  challengeStatusLabel,
+  challengeStatusTone,
   getChallengeById,
   getChallengeParticipation,
   getChallengeStandings,
+  isChallengeJoinable,
+  isChallengeUpcoming,
   joinChallenge,
   previewChallengePrizes,
   syncMyChallengeScore,
@@ -22,6 +31,8 @@ import {
 } from "@/lib/challenges";
 import { metricLabel } from "@/lib/player-stats";
 import { subscribeRealtime } from "@/lib/realtime";
+
+import "@/components/presentation/challenge-banner.css";
 
 type ChallengeDetailState =
   | { status: "loading" }
@@ -178,39 +189,90 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
 
   return (
     <div className="arena-page">
-      {state.status === "loading" && (
-        <div className="flex items-center gap-3 arena-panel p-6 text-neutral-300">
-          <Loader2 className="size-5 animate-spin text-orange-400" />
-          <span className="text-sm font-bold">Cargando desafío de arena...</span>
-        </div>
-      )}
+      {state.status === "loading" && <LoadingPanel label="Cargando desafío de arena..." />}
 
       {state.status === "error" && (
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-red-100 shadow-xl">
-          <p className="font-bold text-base">Error al cargar el desafío</p>
-          <p className="mt-1 text-sm text-red-100/75">{state.message}</p>
-        </div>
+        <ErrorPanel
+          title="Error al cargar el desafío"
+          message={state.message}
+          action={
+            <Link href="/challenges" className="inline-flex items-center gap-2 text-sm font-bold text-white hover:text-arena">
+              <ArrowLeft className="size-4" />
+              Volver a desafíos
+            </Link>
+          }
+        />
       )}
 
       {state.status === "not-found" && (
-        <div className="rounded-2xl border border-white/10 bg-neutral-900/80 p-8 text-center shadow-xl">
-          <Trophy className="mx-auto size-10 text-orange-400" />
-          <h1 className="mt-4 text-2xl font-black text-white">Desafío no encontrado</h1>
-          <p className="mt-2 text-sm text-neutral-400">Puede que haya finalizado o no esté disponible.</p>
-        </div>
+        <EmptyPanel
+          icon={<Trophy className="size-10" />}
+          title="Desafío no encontrado"
+          message="Puede que haya finalizado o no esté disponible."
+          action={
+            <Link href="/challenges" className="inline-flex items-center gap-2 text-sm font-bold text-arena hover:text-white">
+              <ArrowLeft className="size-4" />
+              Volver a desafíos
+            </Link>
+          }
+        />
       )}
 
       {state.status === "ready" && (
         <div className="space-y-6">
+          <Link href="/challenges" className="inline-flex items-center gap-2 text-sm font-bold text-neutral-400 transition hover:text-white">
+            <ArrowLeft className="size-4" />
+            Volver a desafíos
+          </Link>
+
+          <section
+            className="challenge-banner"
+            data-closed={state.challenge.status === "completed" || state.challenge.status === "cancelled" ? "true" : "false"}
+          >
+            <Image
+              src={challengeBannerSrc(state.challenge.metric)}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, 1100px"
+              className="challenge-banner-art"
+              priority
+            />
+            <div className="challenge-banner-shade" />
+            <div className="challenge-banner-body">
+              <div className="max-w-2xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge tone={challengeStatusTone(state.challenge.status)}>
+                    {challengeStatusLabel(state.challenge.status)}
+                  </StatusBadge>
+                  <span className="rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/80">
+                    {metricLabel(state.challenge.metric)}
+                  </span>
+                </div>
+                <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-white md:text-5xl">
+                  {state.challenge.title}
+                </h1>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-white/70">
+                  {state.challenge.description || "Torneo Battle Royale de Free Fire."}
+                </p>
+              </div>
+            </div>
+          </section>
+
           <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
             <div className="arena-panel p-6 md:p-8">
-              <StatusBadge tone={state.challenge.status === "active" ? "emerald" : state.challenge.status === "completed" ? "cyan" : state.challenge.status === "cancelled" ? "red" : "orange"}>
-                {state.challenge.status || "active"}
-              </StatusBadge>
-              <h1 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl">{state.challenge.title}</h1>
-              <p className="mt-3 text-sm leading-relaxed text-neutral-300">
-                {state.challenge.description || "Desafío competitivo oficial de Free Fire."}
-              </p>
+              <ol className="grid gap-2 sm:grid-cols-3">
+                {[
+                  { n: "1", t: "Inscribite", d: "Se cobra la entrada en Coins." },
+                  { n: "2", t: "Jugá BR", d: "Partidas normales de Free Fire." },
+                  { n: "3", t: "Sincronizá", d: "La API suma lo que hiciste desde que te anotaste." },
+                ].map((step) => (
+                  <li key={step.n} className="rounded-xl border border-white/10 bg-black/25 p-3">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-arena">Paso {step.n}</p>
+                    <p className="mt-1 text-sm font-bold text-white">{step.t}</p>
+                    <p className="mt-1 text-xs text-neutral-500">{step.d}</p>
+                  </li>
+                ))}
+              </ol>
               <p className="mt-4 text-xs text-neutral-500">
                 El puntaje es lo que sumaste en {metricLabel(state.challenge.metric)} desde que te inscribiste
                 {state.challenge.metric === "points" || state.challenge.metric === "ranking_points"
@@ -235,17 +297,30 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Costo de Entrada</span>
-                  <Coins className="size-6 text-orange-400" />
+                  <Coins className="size-6 text-arena" />
                 </div>
                 <p className="mt-3 text-4xl font-black text-white">
-                  {state.challenge.entry_fee} <span className="text-sm font-bold text-orange-300">Coins</span>
+                  {state.challenge.entry_fee} <span className="text-sm font-bold text-arena">Coins</span>
                 </p>
                 <p className="mt-2 text-xs text-neutral-400">
                   Métrica: <strong className="text-white">{metricLabel(state.challenge.metric)}</strong>
                 </p>
-                <p className="mt-2 text-xs font-bold text-orange-200">{challengePrizeLabel(state.challenge)}</p>
+                <div className="mt-4">
+                  <PrizePodium
+                    first={state.challenge.prizeFirst}
+                    second={state.challenge.prizeSecond}
+                    third={state.challenge.prizeThird}
+                  />
+                </div>
                 {state.participant && (
-                  <p className="mt-3 text-sm font-bold text-cyan-200">Tu puntaje: {state.participant.score}</p>
+                  <>
+                    <p className="mt-3 text-sm font-bold text-arena">Tu puntaje: {state.participant.score}</p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {state.participant.lastSyncedAt
+                        ? `Última sync: ${formatDate(state.participant.lastSyncedAt)}`
+                        : "Todavía no sincronizaste stats."}
+                    </p>
+                  </>
                 )}
                 {(state.challenge.status === "completed" || state.challenge.status === "cancelled") && (
                   <p className="mt-3 text-xs text-neutral-400">
@@ -258,11 +333,19 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
                 <button
                   type="button"
                   onClick={handleJoin}
-                  disabled={joining || Boolean(state.participant) || state.challenge.status !== "active"}
+                  disabled={joining || Boolean(state.participant) || !isChallengeJoinable(state.challenge.status)}
                   className="arena-btn w-full py-3.5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {joining ? <Loader2 className="size-5 animate-spin" /> : <ShieldCheck className="size-5" />}
-                  {state.participant ? "Inscripto" : joining ? "Inscribiendo..." : state.challenge.status === "active" ? "Confirmar inscripción" : "Inscripción cerrada"}
+                  {state.participant
+                    ? "Inscripto"
+                    : joining
+                      ? "Inscribiendo..."
+                      : isChallengeJoinable(state.challenge.status)
+                        ? "Confirmar inscripción"
+                        : isChallengeUpcoming(state.challenge.status)
+                          ? "Todavía no abre"
+                          : "Inscripción cerrada"}
                 </button>
 
                 {state.participant && (
@@ -270,9 +353,9 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
                     type="button"
                     onClick={handleSyncStats}
                     disabled={syncing || state.challenge.status === "completed" || state.challenge.status === "cancelled"}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-6 py-3 text-xs font-black text-cyan-200 transition hover:bg-cyan-500/20 disabled:opacity-60"
+                    className="arena-btn-ghost inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-3 text-xs font-black disabled:opacity-60"
                   >
-                    {syncing ? <Loader2 className="size-4 animate-spin text-cyan-400" /> : <RefreshCw className="size-4 text-cyan-400" />}
+                    {syncing ? <Loader2 className="size-4 animate-spin text-arena" /> : <RefreshCw className="size-4 text-arena" />}
                     {syncing ? "Consultando API..." : "Sincronizar stats Free Fire"}
                   </button>
                 )}
@@ -299,7 +382,7 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
               <StatusBadge tone="cyan">API Free Fire</StatusBadge>
             </div>
             {state.standings.length === 0 ? (
-              <p className="px-5 py-8 text-sm text-neutral-500">Todavía no hay inscriptos.</p>
+              <p className="px-5 py-10 text-center text-sm text-neutral-500">Todavía no hay inscriptos. El primero en anotar fija el ritmo.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[480px] text-left text-sm">
@@ -321,18 +404,34 @@ function ChallengeDetailContent({ auth }: { auth: AuthenticatedProfile }) {
                       });
                       return state.standings.map((row, index) => {
                         const isMe = row.userId === auth.user.id;
+                        const place = row.position ?? index + 1;
                         const prize =
                           state.challenge.status === "completed"
                             ? row.prizeCoins
-                            : preview.shares[(row.position ?? index + 1) - 1] ?? 0;
+                            : preview.shares[place - 1] ?? 0;
                         return (
-                          <tr key={row.participantId} className={isMe ? "bg-orange-500/10" : undefined}>
-                            <td className="px-5 py-4 font-black text-white">{row.position ?? "—"}</td>
+                          <tr
+                            key={row.participantId}
+                            className={
+                              isMe
+                                ? "bg-arena/10"
+                                : place === 1
+                                  ? "bg-amber-500/5"
+                                  : place === 2
+                                    ? "bg-white/[0.02]"
+                                    : place === 3
+                                      ? "bg-orange-500/5"
+                                      : undefined
+                            }
+                          >
+                            <td className="px-5 py-4">
+                              <RankMedal place={place} />
+                            </td>
                             <td className="px-5 py-4 font-bold text-white">
                               {row.nickname}
-                              {isMe ? <span className="ml-2 text-xs text-orange-300">vos</span> : null}
+                              {isMe ? <span className="ml-2 text-xs text-arena">vos</span> : null}
                             </td>
-                            <td className="px-5 py-4 font-black text-orange-200">{row.score}</td>
+                            <td className="px-5 py-4 font-black text-arena">{row.score}</td>
                             <td className="px-5 py-4 font-bold text-emerald-200">{prize > 0 ? `${prize} Coins` : "—"}</td>
                             <td className="px-5 py-4 text-neutral-400">{row.lastSyncedAt ? formatDate(row.lastSyncedAt) : "Pendiente"}</td>
                           </tr>
@@ -354,7 +453,7 @@ function InfoCard({ icon: Icon, label, value }: { icon: typeof CalendarDays; lab
   return (
     <div className="arena-stat">
       <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-neutral-500">
-        <Icon className="size-4 text-cyan-200" />
+        <Icon className="size-4 text-arena" />
         {label}
       </div>
       <p className="mt-2 font-bold text-white">{value}</p>

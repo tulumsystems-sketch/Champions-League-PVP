@@ -10,7 +10,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#07080e]/94 backdrop-blur-xl lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#040204]/94 backdrop-blur-xl lg:hidden">
       <ul className="mx-auto flex max-w-lg items-stretch justify-around px-2 py-2">
         {DOCK_NAV.map((item) => {
           const Icon = item.icon;
@@ -22,10 +22,10 @@ export function MobileNav() {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold uppercase tracking-wide transition",
-                  active ? "text-orange-300" : "text-neutral-500 hover:text-neutral-300",
+                  active ? "text-arena" : "text-neutral-500 hover:text-neutral-300",
                 )}
               >
-                <Icon className={cn("size-5", active && "text-orange-400")} />
+                <Icon className={cn("size-5", active && "text-arena")} />
                 {item.label}
               </Link>
             </li>

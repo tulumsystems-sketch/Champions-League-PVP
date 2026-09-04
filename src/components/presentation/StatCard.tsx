@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils";
 type StatTone = "orange" | "cyan" | "emerald" | "yellow" | "red";
 
 const toneClasses: Record<StatTone, string> = {
-  orange: "border-orange-400/20 bg-orange-500/10 text-orange-200",
-  cyan: "border-cyan-400/20 bg-cyan-500/10 text-cyan-200",
+  orange: "border-arena/20 bg-arena/10 text-arena",
+  cyan: "border-white/15 bg-white/8 text-white/80",
   emerald: "border-emerald-400/20 bg-emerald-500/10 text-emerald-200",
   yellow: "border-amber-400/20 bg-amber-500/10 text-amber-100",
-  red: "border-red-400/20 bg-red-500/10 text-red-200",
+  red: "border-arena/20 bg-arena/10 text-arena",
 };
 
 export function StatCard({

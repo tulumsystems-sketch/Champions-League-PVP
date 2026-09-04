@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { RankingTable } from "@/components/presentation/RankingTable";
+import { ErrorPanel, LoadingPanel } from "@/components/presentation/FeedbackPanel";
 import { CombatStat } from "@/components/motion/CombatStat";
 import { StaggerIn } from "@/components/motion/StaggerIn";
 import { getPlatformRank, type PlatformRank } from "@/lib/arena-stats";
@@ -71,7 +72,7 @@ function RankingContent({ userId }: { userId: string }) {
         badgeTone="cyan"
         live
         title="Clasificación de la arena"
-        description="Victorias, participaciones, Coins ganadas y puntos de salas y desafíos de esta plataforma. La carrera de Free Fire no entra en esta tabla."
+        description="Victorias, participaciones, Coins ganadas y puntos de desafíos y torneos de esta plataforma. La carrera de Free Fire no entra en esta tabla."
       />
 
       {state.status === "ready" ? (
@@ -84,18 +85,10 @@ function RankingContent({ userId }: { userId: string }) {
         </StaggerIn>
       ) : null}
 
-      {state.status === "loading" && (
-        <div className="flex items-center gap-3 arena-panel p-5 text-neutral-300">
-          <Loader2 className="size-5 animate-spin text-orange-200" />
-          <span className="text-sm font-semibold">Cargando ranking...</span>
-        </div>
-      )}
+      {state.status === "loading" && <LoadingPanel label="Cargando ranking..." />}
 
       {state.status === "error" && (
-        <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-5 text-red-100">
-          <p className="font-bold">No pudimos cargar el ranking</p>
-          <p className="mt-1 text-sm text-red-100/75">{state.message}</p>
-        </div>
+        <ErrorPanel title="No pudimos cargar el ranking" message={state.message} />
       )}
 
       {state.status === "ready" && (
@@ -103,23 +96,23 @@ function RankingContent({ userId }: { userId: string }) {
           rows={state.rows}
           title="Top 50"
           highlightUserId={userId}
-          emptyMessage="Todavía no hay jugadores rankeados. Cerrá una sala o un desafío para aparecer acá."
+          emptyMessage="Todavía no hay jugadores rankeados. Cerrá un desafío para aparecer acá."
         />
       )}
 
       {state.status === "ready" && state.rows.length === 0 && (
         <div className="flex items-start gap-3 arena-panel p-5 text-neutral-300">
-          <Trophy className="mt-0.5 size-5 text-orange-300" />
+          <Trophy className="mt-0.5 size-5 text-arena" />
           <p className="text-sm leading-6">
-            El ranking se llena cuando se cierran salas y desafíos. Sincronizar el UID de Free Fire no suma puntos acá.
+            El ranking se llena cuando se cierran desafíos y torneos. Sincronizar el UID de Free Fire no suma puntos acá.
           </p>
         </div>
       )}
 
       {state.status === "ready" && state.me.rank && !inTop ? (
-        <div className="rounded-3xl border border-orange-400/20 bg-orange-500/10 p-5 text-orange-100">
+        <div className="rounded-3xl border border-arena/20 bg-arena/10 p-5 text-arena">
           <p className="font-bold">Estás fuera del top 50</p>
-          <p className="mt-1 text-sm text-orange-100/80">
+          <p className="mt-1 text-sm text-white/75">
             Puesto #{state.me.rank} · {state.me.points.toLocaleString("es-AR")} puntos · {state.me.wins} victorias
           </p>
         </div>

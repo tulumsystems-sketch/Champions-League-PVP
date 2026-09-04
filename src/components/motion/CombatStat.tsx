@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 type CombatStatTone = "kill" | "headshot" | "win" | "coin" | "neutral";
 
 const tones: Record<CombatStatTone, { text: string; flash: string }> = {
-  kill: { text: "text-orange-300", flash: "bg-orange-400" },
-  headshot: { text: "text-cyan-300", flash: "bg-cyan-400" },
+  kill: { text: "text-arena", flash: "bg-arena" },
+  headshot: { text: "text-white", flash: "bg-white" },
   win: { text: "text-emerald-300", flash: "bg-emerald-400" },
   coin: { text: "text-amber-300", flash: "bg-amber-400" },
   neutral: { text: "text-white", flash: "bg-white" },
@@ -86,7 +86,7 @@ export function CombatStat({
           ref={slashRef}
           className={cn(
             "pointer-events-none absolute left-3 top-1/2 h-[2px] w-11 origin-left -rotate-12",
-            tone === "headshot" ? "bg-cyan-300/90" : "bg-orange-400/90",
+            tone === "headshot" ? "bg-white/90" : "bg-arena/90",
           )}
         />
       ) : null}
@@ -97,7 +97,7 @@ export function CombatStat({
               data-spark
               className={cn(
                 "pointer-events-none absolute right-6 top-5 size-1 rounded-full",
-                tone === "win" ? "bg-emerald-300" : tone === "headshot" ? "bg-cyan-300" : "bg-orange-300",
+                tone === "win" ? "bg-emerald-300" : tone === "headshot" ? "bg-white" : "bg-arena",
               )}
             />
           ))

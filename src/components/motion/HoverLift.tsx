@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import gsap from "gsap";
 
+import { prefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export function HoverLift({ children, className }: { children: ReactNode; className?: string }) {
@@ -13,11 +14,13 @@ export function HoverLift({ children, className }: { children: ReactNode; classN
     if (!node) return;
 
     const enter = (event: MouseEvent) => {
+      if (prefersReducedMotion()) return;
       const rect = node.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       gsap.to(node, { y: -5, rotate: x * 1.4, duration: 0.24, ease: "power2.out", overwrite: "auto" });
     };
     const move = (event: MouseEvent) => {
+      if (prefersReducedMotion()) return;
       const rect = node.getBoundingClientRect();
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       gsap.to(node, { rotate: x * 1.4, duration: 0.2, ease: "power2.out", overwrite: "auto" });

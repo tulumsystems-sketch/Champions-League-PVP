@@ -61,7 +61,7 @@ export function AdminPayoutSettings() {
           </fieldset>
           {error && <p className="text-sm text-red-300 md:col-span-2">{error}</p>}
           {ok && <p className="text-sm text-emerald-300 md:col-span-2">{ok}</p>}
-          <button type="submit" disabled={saving} className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-black text-white disabled:opacity-60 md:col-span-2">
+          <button type="submit" disabled={saving} className="rounded-xl bg-arena px-4 py-2 text-sm font-black text-white disabled:opacity-60 md:col-span-2">
             {saving ? "Guardando..." : "Guardar datos de cobro"}
           </button>
         </form>

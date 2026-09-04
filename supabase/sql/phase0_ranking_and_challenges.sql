@@ -10,4 +10,4 @@ CREATE POLICY "Authenticated users can read published challenges"
   ON public.challenges
   FOR SELECT
   TO authenticated
-  USING (status IN ('active', 'upcoming'));
+  USING (status IN ('active', 'upcoming', 'completed', 'cancelled'));

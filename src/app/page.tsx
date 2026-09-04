@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { StaggerIn } from "@/components/motion/StaggerIn";
+import { PlayerUltimateCard } from "@/components/presentation/PlayerUltimateCard";
 import { cn } from "@/lib/utils";
 
 import "./landing.css";
@@ -29,36 +30,37 @@ const modes = [
   {
     id: "1v1",
     label: "Duelo",
-    copy: "Uno contra uno. Sin excusa, solo aim y cabeza fría.",
+    copy: "Uno contra uno. Vuelve cuando la validación sea automática.",
     image: "/landing/mode-1v1.png",
   },
   {
     id: "2v2",
     label: "Dúo",
-    copy: "Sincronía, trade y presión. El pozo se parte en dos.",
+    copy: "Sincronía y trade. Duelos privados, todavía en construcción.",
     image: "/landing/mode-2v2.png",
   },
   {
     id: "4v4",
     label: "Escuadra",
-    copy: "Cuatro vs cuatro. Salas privadas y reglas blindadas.",
+    copy: "Cuatro vs cuatro. Salas privadas, próximo release.",
     image: "/landing/mode-4v4.png",
   },
 ];
 
 const modules = [
   {
-    title: "Salas privadas",
-    copy: "Armá el reto, definí el pozo y cerrá el cupo. Ejemplo de copy.",
-    href: "/rooms",
-    image: "/landing/module-salas.png",
+    title: "Desafíos PvP",
+    copy: "Torneos Battle Royale: te inscribís, jugás partidas de Free Fire y la métrica se sincroniza sola.",
+    href: "/challenges",
+    image: "/landing/module-desafios.png",
     featured: true,
   },
   {
-    title: "Desafíos PvP",
-    copy: "Eventos con premio visible y duración limitada.",
-    href: "/challenges",
-    image: "/landing/module-desafios.png",
+    title: "Salas privadas",
+    copy: "1v1 a 4v4 con validación automática. En construcción para el próximo release.",
+    href: "/rooms",
+    image: "/landing/module-salas.png",
+    soon: true,
   },
   {
     title: "Ranking",
@@ -79,7 +81,34 @@ export default function HomePage() {
 
   return (
     <div className="landing-root">
-      <section className="relative min-h-svh overflow-hidden">
+      <header className="landing-header sticky top-0 z-40">
+        <div className="mx-auto grid max-w-[1380px] grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 sm:px-6 lg:grid-cols-[auto_1fr_auto] lg:px-10">
+          <Link href="/" className="font-heading text-2xl font-bold tracking-[0.18em] text-white">
+            CLP
+          </Link>
+          <nav className="hidden items-center justify-center gap-8 lg:flex">
+            {navLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-[13px] lowercase tracking-wide text-white/70 transition hover:text-white"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3 justify-self-end">
+            <Link href="/register" className="hidden text-sm text-white/70 transition hover:text-white sm:inline">
+              Crear cuenta
+            </Link>
+            <Link href="/login" className="landing-nav-cta">
+              Ingresar
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <section className="relative min-h-[calc(100svh-3.6rem)] overflow-hidden">
         <div className="pointer-events-none absolute inset-0" aria-hidden>
           <div className="absolute inset-0 bg-[#040204]" />
           <div className="absolute inset-0 lg:hidden">
@@ -108,28 +137,8 @@ export default function HomePage() {
           <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#040204] via-[#040204]/70 to-transparent" />
         </div>
 
-        <div className="relative mx-auto flex min-h-svh max-w-[1380px] flex-col px-4 py-5 sm:px-6 lg:px-10">
-          <header className="grid grid-cols-[1fr_auto] items-center gap-4 lg:grid-cols-[auto_1fr_auto]">
-            <Link href="/" className="font-heading text-2xl font-bold tracking-[0.18em] text-white">
-              CLP
-            </Link>
-            <nav className="hidden items-center justify-center gap-8 lg:flex">
-              {navLinks.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-[13px] lowercase tracking-wide text-white/70 transition hover:text-white"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <Link href="/login" className="landing-nav-cta justify-self-end">
-              Ingresar
-            </Link>
-          </header>
-
-          <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:py-6">
+        <div className="relative mx-auto flex min-h-[calc(100svh-3.6rem)] max-w-[1380px] flex-col px-4 py-5 sm:px-6 lg:px-10">
+          <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:py-6">
             <div className="max-w-xl">
               <p className="text-sm font-semibold tracking-wide text-red-400">
                 Un nuevo universo, una nueva temporada
@@ -139,10 +148,18 @@ export default function HomePage() {
                 <span className="block">LEAGUE PVP</span>
               </h1>
               <p className="mt-6 max-w-md text-sm leading-7 text-white/70 sm:text-base">
-                Copy de ejemplo. Acá va el pitch corto: competís en salas, cobrás en Coins y subís el ranking.
-                El personaje de fondo entra después.
+                Competí en torneos Battle Royale de Free Fire. Te inscribís con Coins, jugás tus partidas y la métrica se sincroniza sola.
               </p>
-              <div className="mt-8 flex items-center gap-4 text-white/80">
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <Link href="/register" className="landing-btn">
+                  Crear cuenta
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link href="#flujo" className="landing-nav-cta">
+                  Cómo se juega
+                </Link>
+              </div>
+              <div className="mt-6 flex items-center gap-4 text-white/50">
                 <Swords className="size-5" />
                 <UsersRound className="size-5" />
                 <Trophy className="size-5" />
@@ -151,18 +168,34 @@ export default function HomePage() {
               </div>
             </div>
 
-            <aside className="landing-glass relative z-10 hidden rounded-2xl p-6 lg:block">
-              <p className="font-heading text-lg font-bold tracking-[0.28em] text-red-400">PVP</p>
-              <p className="mt-4 text-sm leading-6 text-white/70">
-                Card flotante de ejemplo. Marca, regla o dato de temporada. Se apoya sobre el artwork
-                cuando esté.
+            <aside className="relative z-10 mx-auto w-[280px] sm:w-[300px]">
+              <PlayerUltimateCard
+                player={{
+                  name: "Champion",
+                  avatarUrl: "/landing/hero-champion.png",
+                  initials: "CL",
+                  uid: "Tu UID",
+                  region: "BR",
+                  clan: "CLP",
+                  level: 72,
+                  rank: 19,
+                  rankingPoints: 4680,
+                  likes: 12840,
+                  kills: 9420,
+                  wins: 318,
+                  headshots: 2140,
+                  position: "FF",
+                }}
+              />
+              <p className="mt-3 text-center text-[10px] font-black uppercase tracking-[0.22em] text-white/45">
+                Carta de jugador · temporada CLP
               </p>
             </aside>
           </div>
 
           <div className="grid items-end gap-6 pb-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
-              <p className="mb-3 text-sm font-medium text-white">Modalidades</p>
+              <p className="mb-3 text-sm font-medium text-white">Duelos privados · próximamente</p>
               <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 lg:mx-0 lg:overflow-visible lg:px-0">
                 {modes.map((mode) => {
                   const active = mode.id === activeMode;
@@ -188,6 +221,9 @@ export default function HomePage() {
                       <span className="absolute left-3 top-3 z-10 text-[11px] font-bold tracking-[0.18em] text-white/80">
                         {mode.id}
                       </span>
+                      <span className="absolute right-3 top-3 z-10 rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-200">
+                        Pronto
+                      </span>
                       {active ? (
                         <span className="absolute inset-x-0 bottom-0 z-10 p-3">
                           <span className="block font-heading text-lg font-bold text-white">{mode.label}</span>
@@ -211,7 +247,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <article className="landing-glass flex items-center gap-4 rounded-2xl p-3 sm:p-4">
+            <Link href="#flujo" className="landing-glass flex items-center gap-4 rounded-2xl p-3 transition hover:border-red-500/40 sm:p-4">
               <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-xl ring-1 ring-white/10">
                 <Image
                   src="/landing/arena-preview.png"
@@ -227,12 +263,12 @@ export default function HomePage() {
                 </span>
               </div>
               <div>
-                <p className="font-heading text-lg font-bold text-white">La arena</p>
+                <p className="font-heading text-lg font-bold text-white">Cómo se juega</p>
                 <p className="mt-1 text-xs leading-5 text-white/60 sm:text-sm">
-                  Preview de ejemplo. Acá entra trailer, mapa o recap de temporada.
+                  Inscribite al torneo, jugá Battle Royale en Free Fire y sincronizá stats. El ranking cuenta lo que sumes desde que entraste.
                 </p>
               </div>
-            </article>
+            </Link>
           </div>
         </div>
       </section>
@@ -242,10 +278,10 @@ export default function HomePage() {
           <div className="max-w-2xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-red-400">Ecosistema</p>
             <h2 className="mt-3 font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Cuatro módulos. Una sola operación
+              Torneos, ranking y wallet
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-6 text-white/55">
-              Copy de ejemplo. Abajo no van cinco cards iguales: una featured y tres de apoyo.
+              El MVP corre por desafíos Battle Royale. Las salas 1v1 a 4v4 vuelven cuando la validación sea automática.
             </p>
           </div>
 
@@ -255,8 +291,8 @@ export default function HomePage() {
                 key={item.title}
                 href={item.href}
                 className={cn(
-                  "landing-glass group relative overflow-hidden rounded-3xl p-7 transition hover:border-red-500/40",
-                  item.featured ? "min-h-[340px] lg:col-span-7 lg:row-span-3" : "lg:col-span-5",
+                  "landing-glass group relative overflow-hidden rounded-3xl p-7 transition duration-300 hover:-translate-y-1 hover:border-red-500/40",
+                  item.featured ? "min-h-[340px] lg:col-span-7 lg:row-span-3" : "min-h-[220px] lg:col-span-5",
                 )}
               >
                 <Image
@@ -269,12 +305,12 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#070306] via-[#070306]/70 to-black/20" />
                 <div className="relative z-10">
                   <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-red-400">
-                    {item.featured ? "Principal" : "Módulo"}
+                    {item.soon ? "Próximamente" : item.featured ? "Principal" : "Módulo"}
                   </p>
                   <h3 className="mt-6 font-heading text-3xl font-bold text-white">{item.title}</h3>
                   <p className="mt-3 max-w-md text-sm leading-6 text-white/70">{item.copy}</p>
                   <span className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-white/80">
-                    Entrar
+                    {item.soon ? "En construcción" : "Entrar"}
                     <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                   </span>
                 </div>
@@ -290,9 +326,9 @@ export default function HomePage() {
           <h2 className="mt-3 font-heading text-4xl font-bold text-white sm:text-5xl">Tres pasos</h2>
           <div className="mt-12 grid gap-0 md:grid-cols-3">
             {[
-              { step: "01", title: "Vinculá UID", copy: "Identidad de Free Fire lista para competir." },
-              { step: "02", title: "Cargá Coins", copy: "Entrá al pozo cuando el saldo está confirmado." },
-              { step: "03", title: "Competí y cobrá", copy: "Resultado validado. Ranking y wallet se actualizan." },
+              { step: "01", title: "Vinculá UID", copy: "Tu cuenta de Free Fire queda identificada para competir." },
+              { step: "02", title: "Cargá Coins", copy: "Transferí, un admin acredita, y entras al torneo." },
+              { step: "03", title: "Jugá y cobrá", copy: "Battle Royale en Free Fire, sincronizá stats y el admin cierra el premio." },
             ].map((item, index) => (
               <article
                 key={item.step}
@@ -313,10 +349,10 @@ export default function HomePage() {
       <section className="border-y border-white/8 bg-[#0a0406]">
         <div className="mx-auto grid max-w-[1380px] grid-cols-2 lg:grid-cols-4">
           {[
-            { value: "300+", label: "Jugadores" },
+            { value: "BR", label: "Torneos Free Fire" },
             { value: "1:1", label: "Coin / USD" },
-            { value: "1–4", label: "Modalidades" },
-            { value: "24/7", label: "Salas abiertas" },
+            { value: "1° 2° 3°", label: "Premios fijos" },
+            { value: "API", label: "Stats oficiales" },
           ].map((item, index) => (
             <div key={item.label} className="relative px-6 py-10">
               {index > 0 ? (
@@ -334,7 +370,7 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-3xl px-4 text-center">
           <h2 className="font-heading text-4xl font-bold text-white sm:text-6xl">Entrá a la temporada</h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-white/55">
-            Copy de ejemplo. Cierre con un solo CTA, sin segunda fila de botones.
+            Creá tu cuenta, vinculá el UID y metete al primer torneo de la arena.
           </p>
           <Link href="/register" className="landing-btn mt-8">
             Crear cuenta
@@ -346,7 +382,7 @@ export default function HomePage() {
       <footer className="border-t border-white/8 px-4 py-8 sm:px-6 lg:px-10">
         <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-4 text-xs text-white/40">
           <p className="font-heading tracking-[0.2em] text-white/70">CLP</p>
-          <p>Champions League PVP · copy de ejemplo</p>
+          <p>Champions League PVP · arena competitiva de Free Fire</p>
           <div className="hidden items-center gap-4 sm:flex">
             <Link href="/login" className="hover:text-white">
               Ingresar

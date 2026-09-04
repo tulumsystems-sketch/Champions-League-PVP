@@ -31,7 +31,7 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
             Entrá a la arena competitiva de Free Fire.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-neutral-300">
-            Torneos, salas privadas, ranking y economía de Coins. Misma lógica, ahora con HUD de combate.
+            Torneos Battle Royale, ranking de la arena y economía de Coins. Vinculá tu UID y competí.
           </p>
           <StaggerIn className="mt-8 grid max-w-xl grid-cols-3 gap-3">
             <div className="arena-stat">
@@ -39,7 +39,7 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
               <p className="mt-3 text-sm font-bold text-white">Rankings</p>
             </div>
             <div className="arena-stat">
-              <Coins className="size-5 text-orange-300" />
+              <Coins className="size-5 text-arena" />
               <p className="mt-3 text-sm font-bold text-white">Coins</p>
             </div>
             <div className="arena-stat">
@@ -55,7 +55,7 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
               <Link href="/" className="inline-flex">
                 <BrandMark size="lg" />
               </Link>
-              <p className="mt-4 arena-kicker text-orange-300">Champions League PVP</p>
+              <p className="mt-4 arena-kicker text-arena">Champions League PVP</p>
               <p className="mt-1 text-sm text-neutral-500">Arena competitiva</p>
             </div>
 

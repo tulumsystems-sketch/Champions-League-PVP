@@ -47,7 +47,7 @@ export function ChallengeCard({
         </div>
         <div className="arena-stat">
           <div className="flex items-center gap-2 text-neutral-400">
-            <UsersRound className="size-4 text-cyan-300" />
+            <UsersRound className="size-4 text-arena" />
             Cupos
           </div>
           <p className="mt-1 font-bold text-white">{players}</p>
@@ -56,7 +56,7 @@ export function ChallengeCard({
 
       <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
         <span className="text-sm text-neutral-400">Entrada</span>
-        <span className="font-bold text-orange-200">{entry}</span>
+        <span className="font-bold text-arena">{entry}</span>
       </div>
     </article>
   );

@@ -68,7 +68,7 @@ export function PlayerAvatar({ src, name, initials, size = "md", className }: Pl
     <div ref={wrapRef} className={cn("relative shrink-0 [perspective:600px]", sizes[size], className)}>
       <span
         ref={ringRef}
-        className="pointer-events-none absolute -inset-[3px] rounded-[18px] bg-[conic-gradient(from_120deg,#ff5318,#2ee6ff,#f0c14b,#ff5318)] opacity-85"
+        className="pointer-events-none absolute -inset-[3px] rounded-[18px] bg-[conic-gradient(from_120deg,#ff1638,#9b0018,#f0c14b,#ff1638)] opacity-85"
       />
       <div
         ref={faceRef}

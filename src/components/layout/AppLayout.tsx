@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShieldCheck, X } from "lucide-react";
@@ -56,43 +56,52 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
     };
   }, [auth.user.id]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const nav = navRef.current;
     const indicator = indicatorRef.current;
     if (!nav || !indicator) return;
+
     const activeLink = nav.querySelector<HTMLElement>("[data-active='true']");
     if (!activeLink) {
-      gsap.to(indicator, { autoAlpha: 0, duration: 0.2 });
-      return;
+      const hide = gsap.to(indicator, { autoAlpha: 0, duration: 0.2 });
+      return () => {
+        hide.kill();
+      };
     }
-    gsap.to(indicator, {
+
+    const tween = gsap.to(indicator, {
       autoAlpha: 1,
       y: activeLink.offsetTop,
       height: activeLink.offsetHeight,
-      duration: 0.32,
-      ease: "power3.out",
+      duration: 0,
+      overwrite: true,
     });
+
+    return () => {
+      tween.kill();
+    };
   }, [pathname, items.length]);
 
   return (
     <GamingShell>
       <div className="flex min-h-screen">
-        <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-[16.75rem] lg:flex-col lg:border-r lg:border-white/8 lg:bg-[#07080e]/90 lg:backdrop-blur-2xl">
-          <Link href="/dashboard" className="flex h-[4.6rem] items-center gap-3 border-b border-white/8 px-5">
+        <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-[16.75rem] lg:flex-col lg:border-r lg:border-white/10 lg:bg-[#0a0508]/90 lg:backdrop-blur-2xl">
+          <Link href="/dashboard" className="flex h-[4.6rem] items-center gap-3 border-b border-white/10 px-5">
             <BrandMark size="sm" />
             <div>
-              <p className="arena-kicker text-orange-300">Champions League</p>
+              <p className="arena-kicker text-arena">Champions League</p>
               <h2 className="font-heading text-base font-bold text-white">PVP ARENA</h2>
             </div>
           </Link>
 
-          <nav ref={navRef} className="relative flex-1 space-y-1 overflow-y-auto px-3 py-5">
-            <span
-              ref={indicatorRef}
-              className="pointer-events-none absolute left-3 right-3 rounded-xl bg-gradient-to-r from-orange-600/95 to-orange-500/90 shadow-[0_10px_24px_rgba(255,83,24,0.28)]"
-            />
-            <p className="arena-kicker relative z-10 px-3 pb-3">Navegación</p>
-            {items.map((item) => {
+          <nav className="flex-1 overflow-y-auto px-3 py-5">
+            <p className="arena-kicker px-3 pb-3">Navegación</p>
+            <div ref={navRef} className="relative space-y-1">
+              <span
+                ref={indicatorRef}
+                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-11 rounded-xl bg-gradient-to-r from-[#ff1638] to-[#c40022] opacity-0 shadow-[0_10px_24px_rgba(255,22,56,0.32)]"
+              />
+              {items.map((item) => {
               const Icon = item.icon;
               const active = isNavActive(pathname, item.href);
 
@@ -103,7 +112,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                   data-active={active}
                   className={cn(
                     "group relative z-10 flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-bold transition-colors",
-                    active ? "text-white" : "text-neutral-400 hover:text-white",
+                    active ? "text-white" : "text-neutral-400 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -114,7 +123,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                     <span
                       className={cn(
                         "rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider",
-                        active ? "bg-black/20 text-white" : "bg-cyan-400/10 text-cyan-200",
+                        active ? "bg-black/20 text-white" : item.badge === "Pronto" ? "bg-amber-500/15 text-amber-200" : "bg-white/8 text-white/70",
                       )}
                     >
                       {item.badge}
@@ -123,10 +132,11 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                 </Link>
               );
             })}
+            </div>
           </nav>
 
           <div className="border-t border-white/8 bg-black/25 p-4">
-            <Link href="/profile" className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#12121a] p-3 transition hover:border-orange-400/30">
+            <Link href="/profile" className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#12060a] p-3 transition hover:border-arena/40">
               <PlayerAvatar src={auth.profile?.avatar_url} name={displayName} initials={initials} size="sm" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-white">{displayName}</p>
@@ -140,7 +150,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
         </aside>
 
         <div className="flex flex-1 flex-col lg:pl-[16.75rem]">
-          <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/8 bg-[#05060a]/88 px-4 backdrop-blur-xl">
+          <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/10 bg-[#040204]/88 px-4 backdrop-blur-xl">
             <div className="flex items-center gap-3 lg:hidden">
               <button
                 type="button"
@@ -169,7 +179,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
           </header>
 
           {mobileMenuOpen && (
-            <div className="fixed inset-x-0 top-16 z-50 border-b border-white/10 bg-[#07070b]/96 p-4 shadow-2xl backdrop-blur-2xl lg:hidden">
+            <div className="fixed inset-x-0 top-16 z-50 border-b border-white/10 bg-[#040204]/96 p-4 shadow-2xl backdrop-blur-2xl lg:hidden">
               <nav className="space-y-1.5">
                 {items.map((item) => {
                   const Icon = item.icon;
@@ -181,7 +191,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
                         "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-bold transition",
-                        active ? "bg-orange-600 text-white" : "text-neutral-300 hover:bg-white/5 hover:text-white",
+                        active ? "bg-arena text-white" : "text-neutral-300 hover:bg-white/5 hover:text-white",
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -189,7 +199,12 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                         <span>{item.label}</span>
                       </div>
                       {item.badge && (
-                        <span className="rounded-md bg-cyan-400/10 px-2 py-0.5 text-[10px] font-black uppercase text-cyan-200">
+                        <span
+                          className={cn(
+                            "rounded-md px-2 py-0.5 text-[10px] font-black uppercase",
+                            item.badge === "Pronto" ? "bg-amber-500/15 text-amber-200" : "bg-white/8 text-white/70",
+                          )}
+                        >
                           {item.badge}
                         </span>
                       )}
@@ -209,7 +224,7 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#07080e]/94 px-2 py-2 backdrop-blur-xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#040204]/94 px-2 py-2 backdrop-blur-xl lg:hidden">
         <ul className="mx-auto flex max-w-lg items-stretch justify-around">
           {DOCK_NAV.map((item) => {
             const Icon = item.icon;
@@ -219,11 +234,16 @@ export function AppLayout({ auth, children }: AppLayoutProps) {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold uppercase tracking-wide transition",
-                    active ? "text-orange-300" : "text-neutral-500",
+                    "relative flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold uppercase tracking-wide transition",
+                    active ? "text-arena" : "text-neutral-500",
                   )}
                 >
-                  <Icon className={cn("size-5", active && "text-orange-400 drop-shadow-[0_0_8px_rgba(255,83,24,0.7)]")} />
+                  <span className="relative">
+                    <Icon className={cn("size-5", active && "text-arena drop-shadow-[0_0_8px_rgba(255,22,56,0.7)]")} />
+                    {item.badge === "Pronto" ? (
+                      <span className="absolute -right-1 -top-0.5 size-1.5 rounded-full bg-amber-300" />
+                    ) : null}
+                  </span>
                   {item.label}
                 </Link>
               </li>

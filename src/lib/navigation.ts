@@ -27,7 +27,8 @@ export const MAIN_NAV: NavItem[] = [
     href: "/rooms",
     label: "Salas",
     icon: UsersRound,
-    description: "Salas privadas 1v1, 2v2, 3v3 y 4v4",
+    description: "Duelos 1v1 a 4v4 con validación automática. En construcción.",
+    badge: "Pronto",
   },
   {
     href: "/ranking",
@@ -61,6 +62,7 @@ export const PUBLIC_ROUTES = [
   "/reset-password",
   "/register/completion",
   "/auth/callback",
+  "/auth/confirm",
 ];
 
 export function isPublicRoute(pathname: string) {

@@ -31,7 +31,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-neutral-950/90 text-white backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/dashboard" className="flex min-w-0 items-center gap-3 font-black text-white">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-orange-600 shadow-lg shadow-orange-950/40">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-arena shadow-[0_10px_24px_rgba(255,22,56,0.32)]">
             <Swords className="size-4" />
           </span>
           <span className="hidden truncate text-sm uppercase tracking-[0.2em] sm:block">Champions League PVP</span>

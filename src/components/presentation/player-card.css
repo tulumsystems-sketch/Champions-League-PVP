@@ -1,0 +1,490 @@
+.fut-stage {
+  perspective: 1100px;
+}
+
+.fut-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  transform-style: preserve-3d;
+  will-change: transform;
+  filter: drop-shadow(0 26px 28px rgb(0 0 0 / 58%));
+}
+
+.fut-shell,
+.fut-rim,
+.fut-face {
+  height: 100%;
+  clip-path: polygon(
+    50% 0%,
+    93% 5.5%,
+    100% 14%,
+    100% 78%,
+    88% 93%,
+    50% 100%,
+    12% 93%,
+    0 78%,
+    0 14%,
+    7% 5.5%
+  );
+}
+
+.fut-shell {
+  position: relative;
+  padding: 6px;
+}
+
+.fut-shell[data-tier="bronze"] {
+  background: linear-gradient(160deg, #f0d0ae 0%, #c0844e 38%, #6b3a1d 78%, #2a140a 100%);
+}
+
+.fut-shell[data-tier="silver"] {
+  background: linear-gradient(160deg, #ffffff 0%, #c5ccd6 36%, #6d7682 78%, #2a2e34 100%);
+}
+
+.fut-shell[data-tier="gold"] {
+  background: linear-gradient(160deg, #fff6c8 0%, #f0c14b 32%, #b8860b 70%, #4a2e05 100%);
+}
+
+.fut-shell[data-tier="rare"] {
+  background: linear-gradient(160deg, #dbeafe 0%, #60a5fa 30%, #1d4ed8 72%, #0b1a4a 100%);
+}
+
+.fut-shell[data-tier="purple"] {
+  background: linear-gradient(160deg, #f3e8ff 0%, #c084fc 30%, #7e22ce 72%, #3b0764 100%);
+}
+
+.fut-shell[data-tier="special"] {
+  background: linear-gradient(160deg, #ffb4bd 0%, #ff1638 34%, #8a0218 76%, #2a0008 100%);
+}
+
+.fut-shell[data-tier="icon"] {
+  background: linear-gradient(145deg, #fff4c2 0%, #f0c14b 28%, #ff1638 68%, #3a0810 100%);
+}
+
+.fut-rim {
+  padding: 3px;
+  background: linear-gradient(180deg, rgb(0 0 0 / 35%), rgb(0 0 0 / 55%));
+}
+
+.fut-face {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.fut-face[data-tier="bronze"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(255 214 170 / 38%), transparent 58%),
+    linear-gradient(180deg, #9a5a32 0%, #4a2816 46%, #1a0e08 100%);
+}
+
+.fut-face[data-tier="silver"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(255 255 255 / 30%), transparent 58%),
+    linear-gradient(180deg, #8f98a6 0%, #3d444e 48%, #14171c 100%);
+}
+
+.fut-face[data-tier="gold"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(255 236 160 / 42%), transparent 56%),
+    linear-gradient(180deg, #d4af37 0%, #7a5410 44%, #1c1204 100%);
+}
+
+.fut-face[data-tier="rare"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(147 197 253 / 38%), transparent 58%),
+    linear-gradient(180deg, #1e4ed8 0%, #0f172a 50%, #04060e 100%);
+}
+
+.fut-face[data-tier="purple"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(216 180 254 / 42%), transparent 58%),
+    linear-gradient(180deg, #7e22ce 0%, #3b0764 50%, #0c0416 100%);
+}
+
+.fut-face[data-tier="special"] {
+  background:
+    radial-gradient(120% 55% at 50% 0%, rgb(255 22 56 / 48%), transparent 56%),
+    linear-gradient(180deg, #8a0d22 0%, #1c0509 50%, #070204 100%);
+}
+
+.fut-face[data-tier="icon"] {
+  background:
+    radial-gradient(90% 50% at 50% 0%, rgb(240 193 75 / 42%), transparent 55%),
+    radial-gradient(80% 40% at 50% 100%, rgb(255 22 56 / 28%), transparent 55%),
+    linear-gradient(180deg, #3a1a08 0%, #14060a 48%, #050204 100%);
+}
+
+.fut-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.fut-pattern,
+.fut-holo,
+.fut-grain,
+.fut-spec,
+.fut-shine {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.fut-pattern {
+  opacity: 0.14;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 16%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 16%) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: radial-gradient(ellipse at 50% 28%, black 18%, transparent 70%);
+}
+
+.fut-holo {
+  opacity: 0;
+  mix-blend-mode: color-dodge;
+  background: repeating-conic-gradient(
+    from 20deg,
+    rgb(255 22 56 / 16%) 0deg 12deg,
+    rgb(240 193 75 / 14%) 12deg 24deg,
+    rgb(168 85 247 / 14%) 24deg 36deg,
+    transparent 36deg 48deg
+  );
+}
+
+.fut-face[data-tier="purple"] .fut-holo,
+.fut-face[data-tier="rare"] .fut-holo,
+.fut-face[data-tier="special"] .fut-holo,
+.fut-face[data-tier="icon"] .fut-holo {
+  opacity: 0.28;
+  animation: fut-holo-shift 8s linear infinite;
+}
+
+.fut-grain {
+  opacity: 0.1;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(rgb(255 255 255 / 35%) 0.5px, transparent 0.6px);
+  background-size: 3px 3px;
+}
+
+.fut-spec {
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 18%), rgb(255 255 255 / 28%), transparent 32%);
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+}
+
+.fut-shine {
+  background: linear-gradient(115deg, transparent 38%, rgb(255 255 255 / 36%) 50%, transparent 62%);
+  transform: translateX(-140%);
+  mix-blend-mode: screen;
+}
+
+.fut-card:hover .fut-shine {
+  animation: fut-foil 1.05s ease;
+}
+
+.fut-layout {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  height: 100%;
+  min-height: 0;
+  padding: 0 0 4%;
+}
+
+.fut-banner {
+  z-index: 2;
+  margin: 7% 12% 0;
+  clip-path: polygon(8% 0, 92% 0, 86% 100%, 14% 100%);
+  background: rgb(0 0 0 / 55%);
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 86%);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fut-upper {
+  display: grid;
+  grid-template-columns: 34% 66%;
+  min-height: 0;
+  overflow: hidden;
+  align-items: stretch;
+}
+
+.fut-left {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.12rem;
+  padding: 6% 4% 4% 18%;
+  background: linear-gradient(90deg, rgb(0 0 0 / 42%) 0%, rgb(0 0 0 / 18%) 70%, transparent 100%);
+}
+
+.fut-ovr {
+  font-variant-numeric: tabular-nums;
+  line-height: 0.82;
+  text-shadow: 0 3px 0 rgb(0 0 0 / 45%);
+}
+
+.fut-pos,
+.fut-rank-short {
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 82%);
+}
+
+.fut-crest {
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  clip-path: polygon(50% 0, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+  background: linear-gradient(160deg, #ff1638, #7a0214);
+  font-size: 0.48rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: white;
+}
+
+.fut-region {
+  margin-top: 0.2rem;
+  border: 1px solid rgb(255 255 255 / 22%);
+  background: rgb(0 0 0 / 40%);
+  padding: 0.08rem 0.3rem;
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgb(255 255 255 / 80%);
+}
+
+.fut-art {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.fut-art-glow {
+  position: absolute;
+  inset: auto 10% 4% 10%;
+  height: 28%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(255 255 255 / 22%), transparent 70%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+.fut-art img {
+  position: absolute;
+  inset: 6% 6% 0 0;
+  width: 94%;
+  height: 94%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 12px 12px rgb(0 0 0 / 40%));
+}
+
+.fut-art-fallback {
+  position: absolute;
+  inset: 18% 12% 12% 8%;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 28%);
+  font-weight: 800;
+  color: rgb(255 255 255 / 55%);
+  line-height: 1;
+}
+
+.fut-plate {
+  position: relative;
+  z-index: 3;
+  margin: 0 11%;
+  padding: 0.28rem 0.55rem 0.32rem;
+  background: rgb(0 0 0 / 62%);
+  border-top: 1px solid rgb(255 255 255 / 16%);
+  border-bottom: 1px solid rgb(0 0 0 / 40%);
+  text-align: center;
+  min-width: 0;
+}
+
+.fut-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.14rem;
+  margin-bottom: 0.12rem;
+}
+
+.fut-stars span {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: rgb(255 255 255 / 22%);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.fut-stars span[data-on="true"] {
+  background: #f0c14b;
+  box-shadow: 0 0 8px rgb(240 193 75 / 80%);
+}
+
+.fut-name,
+.fut-rankline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.fut-name {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: white;
+  line-height: 1.15;
+}
+
+.fut-rankline {
+  margin-top: 0.08rem;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fut-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0.3rem 14% 0;
+  color: rgb(255 255 255 / 55%);
+}
+
+.fut-divider span:first-child,
+.fut-divider span:last-child {
+  height: 1px;
+  flex: 1;
+  background: rgb(255 255 255 / 22%);
+}
+
+.fut-diamond {
+  width: 7px;
+  height: 7px;
+  rotate: 45deg;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.fut-stats {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0.12rem 0.5rem;
+  margin: 0.28rem 14% 0;
+  min-width: 0;
+}
+
+.fut-stats-col {
+  display: grid;
+  gap: 0.06rem;
+  min-width: 0;
+}
+
+.fut-stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.fut-stat-key {
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: rgb(255 255 255 / 62%);
+}
+
+.fut-stat-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: white;
+}
+
+.fut-stats-rule {
+  background: rgb(255 255 255 / 18%);
+}
+
+.fut-compact-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin: 0.2rem 12% 0;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 78%);
+}
+
+.fut-uid {
+  margin-top: 0.2rem;
+  padding: 0.15rem 14% 0;
+  text-align: center;
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 42%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fut-compact .fut-left {
+  padding: 8% 2% 4% 16%;
+  gap: 0.08rem;
+}
+
+.fut-compact .fut-crest,
+.fut-compact .fut-rank-short {
+  display: none;
+}
+
+.fut-compact .fut-stars span {
+  width: 0.38rem;
+  height: 0.38rem;
+}
+
+@keyframes fut-foil {
+  from { transform: translateX(-140%); }
+  to { transform: translateX(140%); }
+}
+
+@keyframes fut-holo-shift {
+  from { transform: rotate(0deg) scale(1.35); }
+  to { transform: rotate(360deg) scale(1.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fut-card:hover .fut-shine,
+  .fut-shine,
+  .fut-holo {
+    animation: none;
+    transform: none;
+  }
+}

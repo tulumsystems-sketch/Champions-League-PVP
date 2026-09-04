@@ -7,29 +7,28 @@ import {
   Coins,
   Flame,
   Trophy,
-  Loader2,
 } from "lucide-react";
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { LivePulse } from "@/components/hud/LivePulse";
 import { RankingTable } from "@/components/presentation/RankingTable";
+import { ChallengeListCard } from "@/components/presentation/ChallengeListCard";
+import { EmptyPanel, LoadingPanel } from "@/components/presentation/FeedbackPanel";
+import { PlayerUltimateCard } from "@/components/presentation/PlayerUltimateCard";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import { CombatStat } from "@/components/motion/CombatStat";
-import { PlayerAvatar } from "@/components/motion/PlayerAvatar";
 import { StaggerIn } from "@/components/motion/StaggerIn";
-import { HoverLift } from "@/components/motion/HoverLift";
 import { CoinChip } from "@/components/motion/CoinChip";
 import type { AuthenticatedProfile } from "@/lib/profile";
 import { getInitials, getProfileName, getProfileUid } from "@/lib/profile";
 import { getOrCreateWallet, getWalletTransactions, type Wallet, type WalletTransaction } from "@/lib/wallet";
 import { fetchAndSyncPlayerFreeFireStats } from "@/app/actions/free-fire";
 import { getFreeFireAvatarUrl, type CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
-import { challengePrizeLabel, getActiveChallenges, type Challenge } from "@/lib/challenges";
+import { getActiveChallenges, isChallengeUpcoming, type Challenge } from "@/lib/challenges";
 import { getPlatformRank, type PlatformRank } from "@/lib/arena-stats";
-import { getStoredCareerStats, isFreeFireSnapshotStale, persistFreeFireSnapshot, metricLabel, type CareerStats } from "@/lib/player-stats";
+import { getStoredCareerStats, isFreeFireSnapshotStale, persistFreeFireSnapshot, type CareerStats } from "@/lib/player-stats";
 import { getLeaderboard, type LeaderboardEntry } from "@/lib/rooms-db";
-import { cn } from "@/lib/utils";
 
 type DashboardState =
   | { status: "loading" }
@@ -154,32 +153,45 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
     return () => {
       active = false;
     };
-  }, [auth]);
+  }, [auth.user.id, auth.profile?.freefire_uid, auth.profile?.freefire_region]);
 
   return (
     <div className="arena-page">
       <section className="arena-panel relative p-6 md:p-8">
-        <div className="absolute -right-12 -top-12 size-64 rounded-full bg-orange-500/10 blur-3xl pointer-events-none" />
-        <div className="absolute right-1/3 bottom-0 size-48 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -right-12 -top-12 size-64 rounded-full bg-arena/10 blur-3xl pointer-events-none" />
+        <div className="absolute right-1/3 bottom-0 size-48 rounded-full bg-arena/10 blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-4">
-            <PlayerAvatar
-              src={auth.profile?.avatar_url}
-              name={displayName}
-              initials={getInitials(displayName) || "P"}
-              size="lg"
+        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+            <PlayerUltimateCard
+              size="sm"
+              player={{
+                name: displayName,
+                avatarUrl: auth.profile?.avatar_url,
+                initials: getInitials(displayName) || "P",
+                uid: getProfileUid(auth.profile),
+                region: auth.profile?.freefire_region,
+                clan: auth.profile?.clan_name,
+                level: state.status === "ready" ? Number(state.ffStats?.level ?? auth.profile?.freefire_level ?? 0) : auth.profile?.freefire_level,
+                rank: state.status === "ready" ? Number(state.ffStats?.rank ?? auth.profile?.freefire_rank ?? 0) : auth.profile?.freefire_rank,
+                rankingPoints: state.status === "ready" ? Number(state.ffStats?.rankingPoints ?? state.career?.rankingPoints ?? 0) : 0,
+                likes: state.status === "ready" ? Number(state.ffStats?.liked ?? auth.profile?.freefire_likes ?? 0) : auth.profile?.freefire_likes,
+                kills: state.status === "ready" ? state.career?.kills ?? 0 : 0,
+                wins: state.status === "ready" ? state.career?.wins ?? 0 : 0,
+                headshots: state.status === "ready" ? state.career?.headshots ?? 0 : 0,
+                position: "FF",
+              }}
             />
-            <div className="space-y-3">
+            <div className="space-y-3 text-center sm:text-left">
               <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge tone="orange">Command Center</StatusBadge>
+                <StatusBadge tone="orange">Inicio</StatusBadge>
                 <LivePulse />
               </div>
               <h1 className="font-heading text-3xl font-bold tracking-tight text-white md:text-5xl">
-                ¡Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">{displayName}</span>!
+                ¡Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-arena to-amber-200">{displayName}</span>!
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-neutral-300">
-                Ranking y Coins de esta arena, más tu identidad de Free Fire. Inscribite en desafíos, entrá a salas y seguí tu puesto.
+                Ranking y Coins de esta arena, más tu identidad de Free Fire. Inscribite en desafíos y seguí tu puesto.
               </p>
             </div>
           </div>
@@ -192,7 +204,7 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
             <div className="mt-3">
               <CoinChip balance={state.status === "ready" ? Number(state.wallet.balance) : null} className="px-0 py-0 border-0 bg-transparent" />
             </div>
-            <Link href="/wallet" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-orange-400 hover:text-orange-300">
+            <Link href="/wallet" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-arena hover:text-white">
               Gestionar wallet <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
@@ -242,10 +254,10 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
           <CombatStat label="UID" value={freefireUid} />
         </StaggerIn>
       ) : (
-        <div className="arena-panel border-cyan-400/20 p-5 text-cyan-100">
+        <div className="arena-panel border-arena/20 p-5 text-white/80">
           <p className="font-bold">Vinculá tu UID de Free Fire</p>
-          <p className="mt-1 text-sm text-cyan-100/75">
-            Sirve para tu identidad y para inscribirte. El ranking de la arena se arma con salas y desafíos. Completá el UID en{" "}
+          <p className="mt-1 text-sm text-white/70">
+            Sirve para tu identidad y para inscribirte. El ranking de la arena se arma con desafíos y torneos. Completá el UID en{" "}
             <Link href="/profile" className="font-black underline">
               Perfil
             </Link>
@@ -267,14 +279,14 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3.5 py-1 text-xs font-black tracking-wide uppercase text-orange-400">
-                <Flame className="size-3.5 text-orange-400 animate-pulse" />
+              <span className="flex items-center gap-1.5 rounded-full border border-arena/30 bg-arena/10 px-3.5 py-1 text-xs font-black tracking-wide uppercase text-arena">
+                <Flame className="size-3.5 text-arena animate-pulse" />
                 Arena Oficial de Batalla
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Torneos y Retos</h2>
             <p className="text-sm text-neutral-400 max-w-xl leading-relaxed">
-              Inscríbete en las copas activas y futuras de Free Fire. Demuestra tu nivel en la arena, compite en enfrentamientos directos y asegura tu lugar en la gloria competitiva.
+              Inscribite en los torneos Battle Royale. Jugá partidas de Free Fire, sincronizá la métrica y peleá el 1°, 2° y 3°.
             </p>
           </div>
           <Link
@@ -286,70 +298,23 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
           </Link>
         </div>
 
-        <StaggerIn className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <StaggerIn className="flex flex-col gap-4">
           {state.status === "loading" ? (
-            <div className="col-span-full flex items-center justify-center p-16 text-neutral-400 gap-3">
-              <Loader2 className="size-6 animate-spin text-orange-400" /> Sincronizando torneos con Supabase...
-            </div>
+            <LoadingPanel label="Cargando torneos..." />
           ) : state.status === "ready" && state.challenges.length === 0 ? (
-            <div className="col-span-full arena-panel p-10 text-center text-neutral-400 space-y-3">
-              <p className="font-bold text-white text-lg">No hay torneos activos en este momento.</p>
-              <p className="text-xs text-neutral-400 max-w-md mx-auto">
-                Pronto habilitaremos nuevas ligas competitivas y enfrentamientos en la arena. Mantente atento a las actualizaciones.
-              </p>
-            </div>
+            <EmptyPanel
+              title="No hay torneos activos"
+              message="Cuando un admin publique un desafío Battle Royale, aparece acá para inscribirte."
+            />
           ) : (
             state.status === "ready" &&
-            state.challenges.map((challenge) => {
-              const isUpcoming = challenge.status === "upcoming" || challenge.status === "scheduled";
-              return (
-                <HoverLift key={challenge.id}>
-                <article
-                  className="arena-panel group relative flex h-full flex-col justify-between overflow-hidden p-6 transition-all hover:border-orange-500/50"
-                >
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/5 rounded-full blur-3xl group-hover:bg-orange-500/15 transition-all" />
-
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={cn(
-                          "rounded-lg px-2.5 py-1 text-[11px] font-black uppercase tracking-wider",
-                          isUpcoming ? "bg-amber-500/10 text-amber-300 border border-amber-500/30" : "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30",
-                        )}
-                      >
-                        {isUpcoming ? "Próximamente" : "En Curso"}
-                      </span>
-                      <span className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-black text-orange-300">
-                        {challenge.entry_fee} Coins
-                      </span>
-                    </div>
-
-                    <h3 className="mt-4 text-xl font-black text-white group-hover:text-orange-300 transition-colors">
-                      {challenge.title}
-                    </h3>
-
-                    <p className="mt-2 text-xs text-neutral-400 leading-relaxed line-clamp-2">
-                      {challenge.description || "Torneo competitivo oficial de Free Fire con emparejamientos directos y premios en saldo de Coins."}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-extrabold tracking-wider text-neutral-500 block">Métrica</span>
-                      <span className="text-xs font-black text-neutral-200">{metricLabel(challenge.metric)}</span>
-                      <p className="mt-1 text-[10px] font-bold text-orange-200">{challengePrizeLabel(challenge)}</p>
-                    </div>
-                    <Link
-                      href={`/challenges/${challenge.id}`}
-                      className="arena-btn px-4 py-2.5 text-xs"
-                    >
-                      {isUpcoming ? "Ver Detalles" : "Inscribirme"}
-                    </Link>
-                  </div>
-                </article>
-                </HoverLift>
-              );
-            })
+            state.challenges.map((challenge) => (
+              <ChallengeListCard
+                key={challenge.id}
+                challenge={challenge}
+                ctaLabel={isChallengeUpcoming(challenge.status) ? "Ver detalles" : "Inscribirme"}
+              />
+            ))
           )}
         </StaggerIn>
       </section>
@@ -359,9 +324,9 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
           <div>
             <StatusBadge tone="cyan">Ranking</StatusBadge>
             <h2 className="mt-3 text-2xl font-black text-white">Top de la arena</h2>
-            <p className="mt-1 text-sm text-neutral-500">Puntos de salas y desafíos, no de la carrera de Free Fire.</p>
+            <p className="mt-1 text-sm text-neutral-500">Puntos de desafíos y torneos, no de la carrera de Free Fire.</p>
           </div>
-          <Link href="/ranking" className="text-sm font-bold text-orange-300 hover:text-orange-200">
+          <Link href="/ranking" className="text-sm font-bold text-arena hover:text-arena">
             Ver ranking completo
           </Link>
         </div>
@@ -371,8 +336,4 @@ function DashboardContent({ auth }: { auth: AuthenticatedProfile }) {
       </section>
     </div>
   );
-}
-
-function DashboardStat({ label, value }: { label: string; value: string }) {
-  return <CombatStat label={label} value={value} />;
 }
