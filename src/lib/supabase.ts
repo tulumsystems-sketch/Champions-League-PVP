@@ -30,6 +30,7 @@ function createSafeFallbackClient() {
       resetPasswordForEmail: reject,
       exchangeCodeForSession: reject,
       verifyOtp: reject,
+      setSession: reject,
       getSession: async () => ({ data: { session: null }, error: missingError }),
       getUser: async () => ({ data: { user: null }, error: missingError }),
       onAuthStateChange: () => ({
@@ -42,16 +43,23 @@ function createSafeFallbackClient() {
   } as unknown as SupabaseClient;
 }
 
+const globalForSupabase = globalThis as typeof globalThis & { __clpvpSupabase?: SupabaseClient };
+
 export const supabase =
-  supabaseUrl && supabaseAnonKey
+  globalForSupabase.__clpvpSupabase ??
+  (supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           persistSession: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false,
           flowType: "pkce",
         },
       })
-    : createSafeFallbackClient();
+    : createSafeFallbackClient());
+
+if (supabaseUrl && supabaseAnonKey) {
+  globalForSupabase.__clpvpSupabase = supabase;
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(

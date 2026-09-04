@@ -29,7 +29,7 @@ export function BrandMark({ size = "md", className }: { size?: "sm" | "md" | "lg
     <span
       ref={ref}
       className={cn(
-        "relative inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-amber-700 text-white shadow-[0_0_28px_rgba(255,83,24,0.42)]",
+        "relative inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-[#ff3b52] via-[#ff1638] to-[#9b0018] text-white shadow-[0_0_28px_rgba(255,22,56,0.42)]",
         box,
         className,
       )}

@@ -12,6 +12,18 @@ export type CoinPackage = {
 export type MoneyRequestStatus = "pending" | "approved" | "rejected";
 export type PayoutMethod = "ars" | "usdt";
 
+export function moneyRequestStatusLabel(status: string, kind: "deposit" | "withdrawal" = "deposit") {
+  if (status === "approved") return kind === "withdrawal" ? "Pagado" : "Acreditado";
+  if (status === "rejected") return "Rechazado";
+  return "Pendiente";
+}
+
+export function moneyRequestStatusTone(status: string): "emerald" | "red" | "orange" {
+  if (status === "approved") return "emerald";
+  if (status === "rejected") return "red";
+  return "orange";
+}
+
 export type DepositRequest = {
   id: string;
   userId: string;

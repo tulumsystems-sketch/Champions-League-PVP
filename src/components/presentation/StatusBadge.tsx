@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 type StatusBadgeTone = "orange" | "cyan" | "emerald" | "yellow" | "red" | "neutral";
 
 const toneClasses: Record<StatusBadgeTone, string> = {
-  orange: "border-orange-400/35 bg-orange-500/10 text-orange-200 shadow-[0_0_18px_rgba(255,83,24,0.14)]",
-  cyan: "border-cyan-400/35 bg-cyan-500/10 text-cyan-200 shadow-[0_0_18px_rgba(46,230,255,0.14)]",
+  orange: "border-arena/35 bg-arena/10 text-arena shadow-[0_0_18px_rgba(255,22,56,0.18)]",
+  cyan: "border-white/15 bg-white/8 text-white/80",
   emerald: "border-emerald-400/35 bg-emerald-500/10 text-emerald-200",
   yellow: "border-amber-400/35 bg-amber-500/10 text-amber-100",
-  red: "border-red-400/35 bg-red-500/10 text-red-200",
+  red: "border-arena/40 bg-arena/10 text-arena",
   neutral: "border-white/15 bg-white/8 text-neutral-200",
 };
 
@@ -34,10 +34,10 @@ export function StatusBadge({
         className={cn(
           "size-1 rounded-full",
           tone === "emerald" && "bg-emerald-300",
-          tone === "cyan" && "bg-cyan-300",
-          tone === "orange" && "bg-orange-300",
+          tone === "cyan" && "bg-white",
+          tone === "orange" && "bg-arena",
           tone === "yellow" && "bg-amber-300",
-          tone === "red" && "bg-red-300",
+          tone === "red" && "bg-arena",
           tone === "neutral" && "bg-neutral-400",
         )}
       />

@@ -8,6 +8,8 @@ import {
   cancelChallenge,
   CHALLENGE_METRICS,
   challengePrizeLabel,
+  challengeStatusLabel,
+  challengeStatusTone,
   closeChallenge,
   createChallenge,
   DEFAULT_CHALLENGE_PRIZES,
@@ -56,7 +58,7 @@ export function AdminChallenges() {
           <h2 className="text-xl font-black text-white">Desafíos</h2>
           <p className="mt-1 text-xs text-neutral-500">Premios fijos que cargás al crear el desafío (ejemplo del PRD: 50 / 30 / 10 Coins). Métrica por defecto: Puntos. Menos de 2 inscriptos se reembolsa.</p>
         </div>
-        <button type="button" onClick={() => setEditing("new")} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-4 py-2 text-sm font-black text-white">
+        <button type="button" onClick={() => setEditing("new")} className="inline-flex items-center gap-2 rounded-xl bg-arena px-4 py-2 text-sm font-black text-white">
           <Plus className="size-4" /> Nuevo
         </button>
       </div>
@@ -79,8 +81,8 @@ export function AdminChallenges() {
                     {metricLabel(challenge.metric)} · entrada {challenge.entry_fee} · {challengePrizeLabel(challenge)} · {counts[challenge.id] || 0} inscriptos
                   </p>
                 </div>
-                <StatusBadge tone={challenge.status === "active" ? "emerald" : challenge.status === "completed" ? "cyan" : challenge.status === "cancelled" ? "red" : "orange"}>
-                  {challenge.status}
+                <StatusBadge tone={challengeStatusTone(challenge.status)}>
+                  {challengeStatusLabel(challenge.status)}
                 </StatusBadge>
               </div>
               {challenge.status !== "completed" && challenge.status !== "cancelled" && (
@@ -233,7 +235,7 @@ function ChallengeForm({
         </label>
         {error && <p className="text-sm text-red-300">{error}</p>}
         <div className="flex gap-2">
-          <button type="submit" disabled={saving} className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-black text-white disabled:opacity-60">
+          <button type="submit" disabled={saving} className="rounded-xl bg-arena px-4 py-2 text-sm font-black text-white disabled:opacity-60">
             {saving ? "Guardando..." : "Guardar"}
           </button>
           <button type="button" onClick={onClose} className="rounded-xl border border-white/15 px-4 py-2 text-sm text-neutral-300">
@@ -278,7 +280,7 @@ function CloseChallengeModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <div className="arena-panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
         <div className="flex items-center gap-2">
-          <Trophy className="size-5 text-orange-300" />
+          <Trophy className="size-5 text-arena" />
           <h3 className="text-xl font-black text-white">Cerrar {challenge.title}</h3>
         </div>
         {preview.cancelled ? (
@@ -299,7 +301,7 @@ function CloseChallengeModal({
                 <span className="text-white">
                   #{row.position} {row.nickname} · {row.score}
                 </span>
-                <span className="font-black text-orange-200">
+                <span className="font-black text-arena">
                   {typeof preview.shares[index] === "number" ? `${preview.shares[index]} Coins` : "—"}
                 </span>
               </li>

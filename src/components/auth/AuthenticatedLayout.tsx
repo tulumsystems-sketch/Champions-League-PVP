@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { GamingShell } from "@/components/GamingShell";
 import { LogoutButton } from "@/components/LogoutButton";
-import { type AuthenticatedProfile, isAdmin, isProfileActive, isProfileComplete, PROFILE_SELECT } from "@/lib/profile";
+import { type AuthenticatedProfile, ensurePlayerProfile, isAdmin, isProfileActive, isProfileComplete } from "@/lib/profile";
 import { supabase } from "@/lib/supabase";
 
 type AuthState =
@@ -46,42 +46,40 @@ export function AuthenticatedLayout({ children, requireCompleteProfile = true, r
         return;
       }
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select(PROFILE_SELECT)
-        .eq("id", user.id)
-        .maybeSingle();
+      try {
+        const profile = await ensurePlayerProfile(user);
+        if (!active) return;
 
-      if (!active) return;
+        if (!isProfileActive(profile)) {
+          setState({ status: "suspended" });
+          return;
+        }
 
-      if (profileError) {
-        setState({ status: "error", message: profileError.message });
-        return;
+        if (requireCompleteProfile && !isProfileComplete(profile)) {
+          const redirectTo = encodeURIComponent(pathname || "/dashboard");
+          router.replace(`/register/completion?redirectTo=${redirectTo}`);
+          return;
+        }
+
+        if (!requireCompleteProfile && isProfileComplete(profile) && pathname === "/register/completion") {
+          const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
+          router.replace(redirectTo || "/dashboard");
+          return;
+        }
+
+        if (requireAdmin && !isAdmin(profile)) {
+          router.replace("/dashboard");
+          return;
+        }
+
+        setState({ status: "ready", context: { user, profile } });
+      } catch (profileError) {
+        if (!active) return;
+        setState({
+          status: "error",
+          message: profileError instanceof Error ? profileError.message : "No pudimos cargar tu perfil.",
+        });
       }
-
-      if (!isProfileActive(profile)) {
-        setState({ status: "suspended" });
-        return;
-      }
-
-      if (requireCompleteProfile && !isProfileComplete(profile)) {
-        const redirectTo = encodeURIComponent(pathname || "/dashboard");
-        router.replace(`/register/completion?redirectTo=${redirectTo}`);
-        return;
-      }
-
-      if (!requireCompleteProfile && isProfileComplete(profile) && pathname === "/register/completion") {
-        const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
-        router.replace(redirectTo || "/dashboard");
-        return;
-      }
-
-      if (requireAdmin && !isAdmin(profile)) {
-        router.replace("/dashboard");
-        return;
-      }
-
-      setState({ status: "ready", context: { user, profile } });
     };
 
     loadSession();
@@ -132,7 +130,7 @@ export function AuthenticatedLayout({ children, requireCompleteProfile = true, r
     <GamingShell>
       <div className="flex min-h-[70vh] items-center justify-center px-4 py-10 text-white">
         <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-neutral-900/80 px-4 py-3 shadow-2xl shadow-black/30">
-          <Loader2 className="size-5 animate-spin text-orange-200" />
+          <Loader2 className="size-5 animate-spin text-arena" />
           <span className="text-sm font-semibold text-neutral-200">Cargando sesión...</span>
         </div>
       </div>

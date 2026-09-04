@@ -5,6 +5,7 @@ import { ArrowDownToLine, ArrowUpFromLine, CheckCircle2, Clock, Loader2, PlusCir
 
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ArenaModal } from "@/components/layout/ArenaModal";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import { CoinChip } from "@/components/motion/CoinChip";
@@ -14,6 +15,8 @@ import {
   getMyDeposits,
   getMyWithdrawals,
   getPayoutSettings,
+  moneyRequestStatusLabel,
+  moneyRequestStatusTone,
   requestWithdrawal,
   type CoinPackage,
   type DepositRequest,
@@ -21,7 +24,7 @@ import {
   type PayoutSettings,
   type WithdrawalRequest,
 } from "@/lib/economy";
-import { PAYOUT_INSTRUCTIONS } from "@/lib/payout-config";
+import { isPlaceholderArs, isPlaceholderUsdt, PAYOUT_INSTRUCTIONS } from "@/lib/payout-config";
 import type { AuthenticatedProfile } from "@/lib/profile";
 import { DEPOSIT_RECEIPTS_BUCKET, uploadUserImage } from "@/lib/storage-uploads";
 import { getOrCreateWallet, getWalletTransactions, type Wallet, type WalletTransaction } from "@/lib/wallet";
@@ -51,6 +54,7 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [selectedPkgId, setSelectedPkgId] = useState<string>("");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const reload = async () => {
@@ -93,18 +97,50 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
         description="1 Coin = 1 USD. Recargás por transferencia, un admin confirma y acredita. Cuando retires, se debitan Coins y el admin te paga."
         actions={
           <div className="flex flex-col gap-2">
-            <button type="button" onClick={() => setDepositOpen(true)} className="arena-btn">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPkgId(packages[0]?.id || "");
+                setDepositOpen(true);
+              }}
+              disabled={state.status !== "ready" || packages.length === 0}
+              className="arena-btn disabled:opacity-60"
+            >
               <PlusCircle className="size-4" /> Cargar saldo
             </button>
-            <button type="button" onClick={() => setWithdrawOpen(true)} className="arena-btn-ghost">
+            <button
+              type="button"
+              onClick={() => setWithdrawOpen(true)}
+              disabled={state.status !== "ready" || packages.length === 0 || Number(state.wallet.balance) <= 0}
+              className="arena-btn-ghost disabled:opacity-60"
+            >
               <ArrowUpFromLine className="size-4" /> Retirar
             </button>
           </div>
         }
       />
-      <p className="font-heading text-4xl font-bold text-white">
-        {state.status === "ready" ? <CoinChip balance={Number(state.wallet.balance)} className="px-0 py-0 border-0 bg-transparent text-3xl" /> : "..."}
-      </p>
+      <section className="arena-panel relative overflow-hidden p-6 md:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-amber-400/10 blur-3xl" />
+        <p className="arena-kicker">Tu saldo</p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          {state.status === "ready" ? (
+            <CoinChip balance={Number(state.wallet.balance)} className="border-0 bg-transparent px-0 py-0 text-3xl" />
+          ) : (
+            <p className="font-heading text-3xl font-bold text-white">{state.status === "error" ? "—" : "..."}</p>
+          )}
+          <p className="text-sm text-neutral-400">1 Coin = 1 USD</p>
+        </div>
+      </section>
+
+      {state.status === "error" && (
+        <p className="arena-err p-4 text-sm">{state.message}</p>
+      )}
+
+      {state.status === "ready" && packages.length === 0 && (
+        <p className="rounded-2xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm text-amber-100">
+          Todavía no hay paquetes de Coins. Un admin tiene que publicarlos en el panel.
+        </p>
+      )}
 
       {successMsg && (
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-200">
@@ -115,21 +151,38 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
 
       <section className="grid gap-3 sm:grid-cols-3">
         {packages.map((pkg) => (
-          <div key={pkg.id} className="arena-stat">
+          <button
+            key={pkg.id}
+            type="button"
+            onClick={() => {
+              setSelectedPkgId(pkg.id);
+              setDepositOpen(true);
+            }}
+            className="arena-stat text-left transition hover:border-arena/40"
+          >
             <p className="text-xs uppercase tracking-widest text-neutral-500">{pkg.name}</p>
             <p className="mt-2 text-2xl font-black text-white">{pkg.coins} Coins</p>
-            <p className="text-sm text-orange-200">${pkg.priceUsd} USD</p>
-          </div>
+            <p className="text-sm text-arena">${pkg.priceUsd} USD</p>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-wider text-neutral-500">Cargar este paquete</p>
+          </button>
         ))}
       </section>
 
-      <RequestList title="Tus recargas" rows={deposits.map((row) => ({ id: row.id, title: `+${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))} />
-      <RequestList title="Tus retiros" rows={withdrawals.map((row) => ({ id: row.id, title: `-${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))} />
+      <RequestList
+        title="Tus recargas"
+        kind="deposit"
+        rows={deposits.map((row) => ({ id: row.id, title: `+${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))}
+      />
+      <RequestList
+        title="Tus retiros"
+        kind="withdrawal"
+        rows={withdrawals.map((row) => ({ id: row.id, title: `-${row.coins} Coins · ${row.method.toUpperCase()}`, status: row.status, date: row.createdAt }))}
+      />
 
       <section className="arena-panel p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-black text-white">Movimientos</h2>
-          <Clock className="size-5 text-orange-300" />
+          <Clock className="size-5 text-arena" />
         </div>
         {state.status === "ready" && state.transactions.length === 0 && <p className="text-sm text-neutral-500">Todavía no hay movimientos.</p>}
         {state.status === "ready" &&
@@ -148,21 +201,23 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
       </section>
 
       {depositOpen && (
-        <MoneyModal title="Cargar saldo" onClose={() => setDepositOpen(false)}>
+        <ArenaModal title="Cargar saldo" onClose={() => setDepositOpen(false)}>
           <DepositForm
+            key={selectedPkgId || "deposit"}
             packages={packages}
             userId={auth.user.id}
+            initialPkgId={selectedPkgId}
             onDone={async () => {
               setDepositOpen(false);
               setSuccessMsg("Comprobante enviado. Un admin va a revisar la transferencia y acreditar tus Coins.");
               await reload();
             }}
           />
-        </MoneyModal>
+        </ArenaModal>
       )}
 
       {withdrawOpen && (
-        <MoneyModal title="Retirar Coins" onClose={() => setWithdrawOpen(false)}>
+        <ArenaModal title="Retirar Coins" onClose={() => setWithdrawOpen(false)}>
           <WithdrawForm
             packages={packages}
             onDone={async () => {
@@ -171,14 +226,24 @@ function WalletContent({ auth }: { auth: AuthenticatedProfile }) {
               await reload();
             }}
           />
-        </MoneyModal>
+        </ArenaModal>
       )}
     </div>
   );
 }
 
-function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; userId: string; onDone: () => Promise<void> }) {
-  const [pkgId, setPkgId] = useState(packages[0]?.id || "");
+function DepositForm({
+  packages,
+  userId,
+  initialPkgId,
+  onDone,
+}: {
+  packages: CoinPackage[];
+  userId: string;
+  initialPkgId?: string;
+  onDone: () => Promise<void>;
+}) {
+  const [pkgId, setPkgId] = useState(initialPkgId || packages[0]?.id || "");
   const [method, setMethod] = useState<PayoutMethod>("ars");
   const [receipt, setReceipt] = useState("");
   const [notes, setNotes] = useState("");
@@ -186,6 +251,7 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
   const [error, setError] = useState<string | null>(null);
   const [payout, setPayout] = useState<PayoutSettings>(PAYOUT_INSTRUCTIONS);
   const pkg = packages.find((item) => item.id === pkgId) || packages[0];
+  const payoutReady = method === "ars" ? !isPlaceholderArs(payout) : !isPlaceholderUsdt(payout);
 
   useEffect(() => {
     getPayoutSettings()
@@ -209,6 +275,9 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
       if (!receiptUrl) {
         throw new Error("Subí el comprobante o pegá un link.");
       }
+      if (!payoutReady) {
+        throw new Error("Faltan los datos de transferencia. Pedile al admin que los cargue en /admin.");
+      }
       await createDepositRequest({ userId, pkg, method, receiptUrl, notes });
       await onDone();
     } catch (submitError) {
@@ -223,7 +292,11 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
       <PackagePicker packages={packages} value={pkgId} onChange={setPkgId} />
       <MethodPicker value={method} onChange={setMethod} />
       <div className="rounded-2xl border border-white/10 bg-black/40 p-4 text-xs text-neutral-300">
-        {method === "ars" ? (
+        {!payoutReady ? (
+          <p className="text-amber-200">
+            El admin todavía no cargó los datos de {method === "ars" ? "CBU/alias" : "USDT"} en /admin. No transfieras hasta que aparezcan.
+          </p>
+        ) : method === "ars" ? (
           <>
             <p><strong>Banco:</strong> {payout.ars.bank}</p>
             <p><strong>CVU:</strong> {payout.ars.cvu}</p>
@@ -237,7 +310,7 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
             <p className="mt-2 text-neutral-500">{payout.usdt.note}</p>
           </>
         )}
-        {pkg && <p className="mt-2 font-bold text-orange-200">A transferir: ${pkg.priceUsd} USD / {pkg.coins} Coins</p>}
+        {pkg && <p className="mt-2 font-bold text-arena">A transferir: ${pkg.priceUsd} USD / {pkg.coins} Coins</p>}
       </div>
       <label className="block space-y-1 text-sm text-neutral-300">
         <span>Comprobante</span>
@@ -251,7 +324,7 @@ function DepositForm({ packages, userId, onDone }: { packages: CoinPackage[]; us
       <input value={receipt} onChange={(event) => setReceipt(event.target.value)} placeholder="O pegá un link (Drive, Imgur)" className={inputClass} />
       <input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Notas opcionales (titular, últimos 4, hash TX)" className={inputClass} />
       {error && <p className="text-sm text-red-300">{error}</p>}
-      <button type="submit" disabled={submitting} className="arena-btn w-full disabled:opacity-60">
+      <button type="submit" disabled={submitting || !payoutReady} className="arena-btn w-full disabled:opacity-60">
         {submitting ? <Loader2 className="size-4 animate-spin" /> : <ArrowDownToLine className="size-4" />}
         Enviar a revisión admin
       </button>
@@ -310,7 +383,7 @@ function PackagePicker({ packages, value, onChange }: { packages: CoinPackage[];
           key={pkg.id}
           type="button"
           onClick={() => onChange(pkg.id)}
-          className={`rounded-xl border p-3 text-left ${value === pkg.id ? "border-orange-500 bg-orange-500/10 text-white" : "border-white/10 text-neutral-300"}`}
+          className={`rounded-xl border p-3 text-left ${value === pkg.id ? "border-arena bg-arena/10 text-white" : "border-white/10 text-neutral-300"}`}
         >
           <p className="text-sm font-black">{pkg.coins} Coins</p>
           <p className="text-xs">${pkg.priceUsd} USD</p>
@@ -328,7 +401,7 @@ function MethodPicker({ value, onChange }: { value: PayoutMethod; onChange: (met
           key={method}
           type="button"
           onClick={() => onChange(method)}
-          className={`rounded-xl border p-3 text-sm font-bold ${value === method ? "border-cyan-400 bg-cyan-500/10 text-white" : "border-white/10 text-neutral-400"}`}
+          className={`rounded-xl border p-3 text-sm font-bold ${value === method ? "border-arena/40 bg-arena/10 text-white" : "border-white/10 text-neutral-400"}`}
         >
           {method === "ars" ? "ARS" : "USDT"}
         </button>
@@ -337,21 +410,15 @@ function MethodPicker({ value, onChange }: { value: PayoutMethod; onChange: (met
   );
 }
 
-function MoneyModal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="arena-panel max-h-[90vh] w-full max-w-lg overflow-y-auto p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-black text-white">{title}</h3>
-          <button type="button" onClick={onClose} className="text-neutral-400">Cerrar</button>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function RequestList({ title, rows }: { title: string; rows: { id: string; title: string; status: string; date: string }[] }) {
+function RequestList({
+  title,
+  kind,
+  rows,
+}: {
+  title: string;
+  kind: "deposit" | "withdrawal";
+  rows: { id: string; title: string; status: string; date: string }[];
+}) {
   return (
     <section className="arena-panel p-5">
       <h2 className="text-lg font-black text-white">{title}</h2>
@@ -363,7 +430,7 @@ function RequestList({ title, rows }: { title: string; rows: { id: string; title
               <p className="font-bold text-white">{row.title}</p>
               <p className="text-xs text-neutral-500">{formatDate(row.date)}</p>
             </div>
-            <StatusBadge tone={row.status === "approved" ? "emerald" : row.status === "rejected" ? "red" : "orange"}>{row.status}</StatusBadge>
+            <StatusBadge tone={moneyRequestStatusTone(row.status)}>{moneyRequestStatusLabel(row.status, kind)}</StatusBadge>
           </div>
         ))}
       </div>

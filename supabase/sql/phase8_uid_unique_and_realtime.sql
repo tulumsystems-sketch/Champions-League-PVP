@@ -13,7 +13,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'match_rooms',
     'match_room_players',
-    'match_results',
+    'match_room_results',
     'challenges',
     'challenge_participants',
     'leaderboard',

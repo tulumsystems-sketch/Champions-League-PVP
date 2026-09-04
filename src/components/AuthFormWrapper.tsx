@@ -18,7 +18,7 @@ type AuthFormWrapperProps = {
 export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperProps) {
   return (
     <GamingShell>
-      <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_460px] lg:px-8">
+      <div className="mx-auto grid min-h-screen max-w-7xl items-start gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_460px] lg:items-center lg:px-8">
         <section className="hidden lg:block">
           <Link href="/" className="inline-flex items-center gap-3">
             <BrandMark />
@@ -31,7 +31,7 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
             Entrá a la arena competitiva de Free Fire.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-neutral-300">
-            Torneos, salas privadas, ranking y economía de Coins. Misma lógica, ahora con HUD de combate.
+            Torneos Battle Royale, ranking de la arena y economía de Coins. Vinculá tu UID y competí.
           </p>
           <StaggerIn className="mt-8 grid max-w-xl grid-cols-3 gap-3">
             <div className="arena-stat">
@@ -39,7 +39,7 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
               <p className="mt-3 text-sm font-bold text-white">Rankings</p>
             </div>
             <div className="arena-stat">
-              <Coins className="size-5 text-orange-300" />
+              <Coins className="size-5 text-arena" />
               <p className="mt-3 text-sm font-bold text-white">Coins</p>
             </div>
             <div className="arena-stat">
@@ -49,13 +49,13 @@ export function AuthFormWrapper({ title, subtitle, children }: AuthFormWrapperPr
           </StaggerIn>
         </section>
 
-        <section className="w-full">
-          <div className="mx-auto w-full max-w-md">
+        <section className="w-full min-w-0">
+          <div className="mx-auto w-full min-w-0 max-w-md">
             <div className="mb-6 text-center lg:hidden">
               <Link href="/" className="inline-flex">
                 <BrandMark size="lg" />
               </Link>
-              <p className="mt-4 arena-kicker text-orange-300">Champions League PVP</p>
+              <p className="mt-4 arena-kicker text-arena">Champions League PVP</p>
               <p className="mt-1 text-sm text-neutral-500">Arena competitiva</p>
             </div>
 

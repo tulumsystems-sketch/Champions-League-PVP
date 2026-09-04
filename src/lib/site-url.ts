@@ -1,6 +1,8 @@
 export const AUTH_CALLBACK_PATH = "/auth/callback";
+export const AUTH_CONFIRM_PATH = "/auth/confirm";
 export const RESET_PASSWORD_PATH = "/reset-password";
 export const PASSWORD_RECOVERY_INTENT_KEY = "clpvp-password-recovery";
+export const PASSWORD_RECOVERY_EMAIL_KEY = "clpvp-password-recovery-email";
 
 function normalizeSiteUrl(value: string) {
   const trimmed = value.trim().replace(/\/$/, "");
@@ -27,9 +29,21 @@ export function getAuthRedirectUrl(nextPath = "/dashboard") {
   return `${getAuthCallbackUrl()}?next=${encodeURIComponent(next)}`;
 }
 
-export function markPasswordRecoveryIntent() {
+export function getPasswordRecoveryRedirectUrl() {
+  return getAuthRedirectUrl(RESET_PASSWORD_PATH);
+}
+
+export function markPasswordRecoveryIntent(email?: string) {
   if (typeof window === "undefined") return;
   sessionStorage.setItem(PASSWORD_RECOVERY_INTENT_KEY, "1");
+  if (email?.trim()) {
+    sessionStorage.setItem(PASSWORD_RECOVERY_EMAIL_KEY, email.trim());
+  }
+}
+
+export function peekPasswordRecoveryEmail() {
+  if (typeof window === "undefined") return "";
+  return sessionStorage.getItem(PASSWORD_RECOVERY_EMAIL_KEY) || "";
 }
 
 export function consumePasswordRecoveryIntent() {
@@ -48,6 +62,9 @@ export function parseAuthRedirect(href: string) {
   return {
     code: url.searchParams.get("code"),
     tokenHash: pick("token_hash"),
+    token: pick("token"),
+    accessToken: hash.get("access_token"),
+    refreshToken: hash.get("refresh_token"),
     next: pick("next") || "/dashboard",
     type: pick("type"),
     error: rawError ? decodeURIComponent(rawError.replace(/\+/g, " ")) : null,

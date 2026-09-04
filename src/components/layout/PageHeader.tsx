@@ -14,7 +14,8 @@ type PageHeaderProps = {
 
 export function PageHeader({ badge, badgeTone = "orange", title, description, actions, live }: PageHeaderProps) {
   return (
-    <div className="arena-panel flex flex-col justify-between gap-5 p-6 md:flex-row md:items-end md:p-8">
+    <div className="arena-panel relative flex flex-col justify-between gap-5 overflow-hidden p-6 md:flex-row md:items-end md:p-8">
+      <div className="pointer-events-none absolute -right-16 -top-16 size-44 rounded-full bg-arena/12 blur-3xl" />
       <div>
         <div className="flex flex-wrap items-center gap-2">
           {badge && <StatusBadge tone={badgeTone}>{badge}</StatusBadge>}

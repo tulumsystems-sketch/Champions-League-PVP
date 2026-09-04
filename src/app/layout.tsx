@@ -16,7 +16,7 @@ const chakraPetch = Chakra_Petch({
 
 export const metadata: Metadata = {
   title: "Champions League PVP",
-  description: "Arena competitiva de torneos, salas y rankings de Free Fire",
+  description: "Arena competitiva de torneos Battle Royale, ranking y Coins de Free Fire",
 };
 
 export default function RootLayout({

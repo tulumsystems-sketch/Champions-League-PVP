@@ -74,7 +74,7 @@ export function AdminUsers({ currentUserId }: AdminUsersProps) {
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-neutral-400">
-          <Users className="size-4 text-orange-300" />
+          <Users className="size-4 text-arena" />
           {users.length} listados
           {suspendedCount > 0 ? ` · ${suspendedCount} suspendidos` : ""}
         </div>
@@ -112,18 +112,22 @@ export function AdminUsers({ currentUserId }: AdminUsersProps) {
                   <div className="min-w-0">
                     <p className="font-bold text-white">
                       {user.nickname?.trim() || user.email || "Jugador"}
-                      {isSelf ? <span className="ml-2 text-xs font-semibold text-orange-300">vos</span> : null}
+                      {isSelf ? <span className="ml-2 text-xs font-semibold text-arena">vos</span> : null}
                     </p>
                     <p className="truncate text-sm text-neutral-400">{user.email || "Sin email"}</p>
-                    <p className="mt-1 text-xs text-cyan-200">UID {user.freefireUid?.trim() || "pendiente"}</p>
+                    <p className="mt-1 text-xs text-white/75">UID {user.freefireUid?.trim() || "pendiente"}</p>
                     <p className="mt-1 text-sm font-black text-white">
                       {user.balance} Coins
                       <span className="ml-2 text-xs font-semibold text-neutral-500">ranking {user.coinsWon}</span>
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge tone={user.role === "admin" ? "orange" : "neutral"}>{user.role}</StatusBadge>
-                    <StatusBadge tone={user.status === "active" ? "emerald" : "red"}>{user.status}</StatusBadge>
+                    <StatusBadge tone={user.role === "admin" ? "orange" : "neutral"}>
+                      {user.role === "admin" ? "Admin" : "Jugador"}
+                    </StatusBadge>
+                    <StatusBadge tone={user.status === "active" ? "emerald" : "red"}>
+                      {user.status === "active" ? "Activo" : "Suspendido"}
+                    </StatusBadge>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -131,7 +135,7 @@ export function AdminUsers({ currentUserId }: AdminUsersProps) {
                     type="button"
                     disabled={busy}
                     onClick={() => setAdjusting(user)}
-                    className="rounded-xl bg-orange-600 px-3 py-2 text-xs font-black text-white disabled:opacity-60"
+                    className="rounded-xl bg-arena px-3 py-2 text-xs font-black text-white disabled:opacity-60"
                   >
                     Ajustar Coins
                   </button>
@@ -228,7 +232,7 @@ function AdjustCoinsModal({
         </label>
         {formError && <p className="text-sm text-red-300">{formError}</p>}
         <div className="flex gap-2">
-          <button type="submit" disabled={busy} className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-black text-white disabled:opacity-60">
+          <button type="submit" disabled={busy} className="rounded-xl bg-arena px-4 py-2 text-sm font-black text-white disabled:opacity-60">
             {busy ? "Guardando..." : "Confirmar ajuste"}
           </button>
           <button type="button" disabled={busy} onClick={onClose} className="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-neutral-200">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { getAuthRedirectUrl } from "@/lib/site-url";
+import { translateAuthError } from "@/lib/auth-recovery";
 import { supabase } from "@/lib/supabase";
 
 type GoogleAuthButtonProps = {
@@ -17,11 +18,16 @@ export function GoogleAuthButton({ nextPath = "/dashboard" }: GoogleAuthButtonPr
   const handleGoogle = async () => {
     setBusy(true);
     setError(null);
+    const fromQuery =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("redirectTo")
+        : null;
+    const destination = fromQuery || nextPath;
 
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: getAuthRedirectUrl(nextPath),
+        redirectTo: getAuthRedirectUrl(destination),
         queryParams: { access_type: "offline", prompt: "select_account" },
       },
     });
@@ -31,7 +37,7 @@ export function GoogleAuthButton({ nextPath = "/dashboard" }: GoogleAuthButtonPr
       setError(
         message.includes("provider is not enabled") || message.includes("unsupported provider")
           ? "Google todavía no está habilitado. Hay que cargar Client ID y Secret en Supabase Auth."
-          : oauthError.message,
+          : translateAuthError(oauthError.message),
       );
       setBusy(false);
     }

@@ -31,7 +31,7 @@ export function FreeFireStatsPreview({ info, stats, region }: FreeFireStatsPrevi
         </div>
         <div className="arena-stat text-right">
           <p className="arena-kicker">Nivel</p>
-          <p className="font-heading text-3xl font-bold text-orange-200">{info.level ?? "—"}</p>
+          <p className="font-heading text-3xl font-bold text-arena">{info.level ?? "—"}</p>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export function FreeFireStatsPreview({ info, stats, region }: FreeFireStatsPrevi
       {stats && (
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.16em] text-neutral-400">
-            <Swords className="size-4 text-orange-300" />
+            <Swords className="size-4 text-arena" />
             Estadísticas de carrera
           </div>
           <div className="grid gap-3 lg:grid-cols-3">

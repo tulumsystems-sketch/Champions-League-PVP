@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, UsersRound } from "lucide-react";
 
 import { AdminChallenges } from "@/components/admin/AdminChallenges";
-import { AdminMatchReviews } from "@/components/admin/AdminMatchReviews";
 import { AdminPayoutSettings } from "@/components/admin/AdminPayoutSettings";
 import { AdminUsers } from "@/components/admin/AdminUsers";
 import { AuthenticatedLayout } from "@/components/auth/AuthenticatedLayout";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ComingSoonCard } from "@/components/layout/ComingSoonCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/presentation/StatusBadge";
 import {
@@ -18,6 +18,8 @@ import {
   getAdminDeposits,
   getAdminWithdrawals,
   getCoinPackages,
+  moneyRequestStatusLabel,
+  moneyRequestStatusTone,
   rejectDeposit,
   rejectWithdrawal,
   type CoinPackage,
@@ -95,13 +97,13 @@ function AdminContent({ auth }: { auth: AuthenticatedProfile }) {
   if (!admin) {
     return (
       <div className="mx-auto max-w-xl space-y-4 px-4 py-16 text-center">
-        <ShieldCheck className="mx-auto size-10 text-orange-300" />
+        <ShieldCheck className="mx-auto size-10 text-arena" />
         <h1 className="text-3xl font-black text-white">Panel de administración</h1>
         <p className="text-sm text-neutral-400">
           Todavía no sos admin. Si no hay ninguno en el proyecto, podés reclamar el primer rol de administrador.
         </p>
         {error && <p className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
-        <button type="button" disabled={claiming} onClick={handleClaim} className="rounded-xl bg-orange-600 px-5 py-3 text-sm font-black text-white disabled:opacity-60">
+        <button type="button" disabled={claiming} onClick={handleClaim} className="rounded-xl bg-arena px-5 py-3 text-sm font-black text-white disabled:opacity-60">
           {claiming ? "Reclamando..." : "Reclamar primer admin"}
         </button>
       </div>
@@ -113,7 +115,7 @@ function AdminContent({ auth }: { auth: AuthenticatedProfile }) {
       <PageHeader
         badge="Admin"
         title="Operaciones de Coins"
-        description="Jugadores, recargas, retiros, resultados de salas, desafíos, ajuste de premios y datos de cobro."
+        description="Jugadores, recargas, retiros, desafíos, ajuste de premios y datos de cobro."
       />
 
       {error && <p className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>}
@@ -184,7 +186,12 @@ function AdminContent({ auth }: { auth: AuthenticatedProfile }) {
         </>
       )}
 
-      <AdminMatchReviews />
+      <ComingSoonCard
+        icon={UsersRound}
+        title="Salas 1v1 a 4v4"
+        description="La revisión manual de capturas queda fuera del MVP. Cuando la validación sea automática, este panel vuelve a operar resultados."
+        tone="orange"
+      />
       <AdminChallenges />
       <AdminPayoutSettings />
     </div>
@@ -254,16 +261,16 @@ function AdminRow({
                   <img src={extra} alt="Comprobante" className="max-h-32 rounded-lg object-contain bg-black" />
                 </a>
               ) : null}
-              <a href={extra} className="block break-all text-xs text-cyan-300" target="_blank" rel="noreferrer">
+              <a href={extra} className="block break-all text-xs text-white/80" target="_blank" rel="noreferrer">
                 Ver comprobante
               </a>
             </div>
           ) : (
-            <p className="mt-1 break-all text-xs text-cyan-200">{extra}</p>
+            <p className="mt-1 break-all text-xs text-white/75">{extra}</p>
           )}
           {notes ? <p className="mt-1 text-xs text-neutral-500">{notes}</p> : null}
         </div>
-        <StatusBadge tone={row.status === "approved" ? "emerald" : row.status === "rejected" ? "red" : "orange"}>{row.status}</StatusBadge>
+        <StatusBadge tone={moneyRequestStatusTone(row.status)}>{moneyRequestStatusLabel(row.status, kind)}</StatusBadge>
       </div>
       {row.status === "pending" && onApprove && onReject && (
         <div className="mt-3 flex gap-2">

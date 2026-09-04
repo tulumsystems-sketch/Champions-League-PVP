@@ -16,3 +16,11 @@ export const PAYOUT_INSTRUCTIONS = {
 } as const;
 
 export type PayoutMethod = keyof typeof PAYOUT_INSTRUCTIONS;
+
+export function isPlaceholderArs(settings: { ars: { cvu: string; alias: string } }) {
+  return settings.ars.cvu === PAYOUT_INSTRUCTIONS.ars.cvu || settings.ars.alias === PAYOUT_INSTRUCTIONS.ars.alias;
+}
+
+export function isPlaceholderUsdt(settings: { usdt: { address: string } }) {
+  return settings.usdt.address === PAYOUT_INSTRUCTIONS.usdt.address;
+}

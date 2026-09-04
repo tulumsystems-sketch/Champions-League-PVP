@@ -4,11 +4,12 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, KeyRound, Loader2, ShieldAlert } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2 } from "lucide-react";
 
+import { RecoveryCodeForm } from "@/components/auth/RecoveryCodeForm";
 import { AuthFormWrapper } from "@/components/AuthFormWrapper";
-import { establishSessionFromAuthUrl } from "@/lib/auth-recovery";
-import { parseAuthRedirect } from "@/lib/site-url";
+import { establishSessionFromAuthUrl, recoveryLinkErrorMessage, translateAuthError } from "@/lib/auth-recovery";
+import { parseAuthRedirect, peekPasswordRecoveryEmail } from "@/lib/site-url";
 import { supabase } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
@@ -17,33 +18,43 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkingLink, setCheckingLink] = useState(true);
+  const [needsCode, setNeedsCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkHint, setLinkHint] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
 
   useEffect(() => {
     let active = true;
 
-    const finish = (message?: string) => {
+    const finish = (options?: { hint?: string; code?: boolean }) => {
       if (!active) return;
-      if (message) setLinkError(message);
+      if (options?.hint) setLinkHint(options.hint);
+      setNeedsCode(Boolean(options?.code));
       setCheckingLink(false);
     };
 
     const init = async () => {
+      setRecoveryEmail(peekPasswordRecoveryEmail());
       const href = window.location.href;
-      const { code, tokenHash, error: redirectError } = parseAuthRedirect(href);
+      const { code, tokenHash, token, accessToken, error: redirectError } = parseAuthRedirect(href);
 
       if (redirectError) {
-        finish("El enlace de recuperación no es válido. Pedí uno nuevo.");
+        finish({
+          hint: "El enlace de recuperación no es válido. Si el correo trae un código de 6 dígitos, ingresalo acá.",
+          code: true,
+        });
         return;
       }
 
-      if (code || tokenHash) {
+      if (code || tokenHash || accessToken) {
         const { error: exchangeError } = await establishSessionFromAuthUrl(href);
         window.history.replaceState({}, "", "/reset-password");
         if (exchangeError) {
-          finish("El enlace expiró o ya fue usado. Pedí uno nuevo desde recuperar contraseña.");
+          finish({
+            hint: recoveryLinkErrorMessage(exchangeError),
+            code: true,
+          });
           return;
         }
       } else {
@@ -55,7 +66,12 @@ export default function ResetPasswordPage() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        finish("Este enlace no es válido o expiró. Pedí uno nuevo desde recuperar contraseña.");
+        finish({
+          hint: token
+            ? "Ingresá el código del correo para elegir una contraseña nueva."
+            : "Si el enlace no abrió la sesión, ingresá el código de 6 dígitos del correo.",
+          code: true,
+        });
         return;
       }
 
@@ -66,13 +82,17 @@ export default function ResetPasswordPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
-        setLinkError(null);
+        setLinkHint(null);
+        setNeedsCode(false);
         setCheckingLink(false);
       }
     });
 
     init().catch(() => {
-      finish("No pudimos validar el enlace de recuperación.");
+      finish({
+        hint: "No pudimos validar el enlace. Probá con el código del correo.",
+        code: true,
+      });
     });
 
     return () => {
@@ -96,7 +116,7 @@ export default function ResetPasswordPage() {
 
     if (updateError) {
       setLoading(false);
-      setError(updateError.message || "No pudimos actualizar la contraseña. Pedí un enlace nuevo.");
+      setError(translateAuthError(updateError.message, "No pudimos actualizar la contraseña. Pedí un enlace nuevo."));
       return;
     }
 
@@ -110,32 +130,33 @@ export default function ResetPasswordPage() {
     return (
       <AuthFormWrapper title="Nueva contraseña" subtitle="Validando el enlace de recuperación...">
         <div className="flex items-center justify-center gap-3 py-6 text-sm text-neutral-300">
-          <Loader2 className="size-5 animate-spin text-orange-200" />
+          <Loader2 className="size-5 animate-spin text-arena" />
           Abriendo la sesión de recuperación...
         </div>
       </AuthFormWrapper>
     );
   }
 
-  if (linkError) {
+  if (needsCode) {
     return (
-      <AuthFormWrapper title="Enlace inválido" subtitle="El correo de recuperación caducó o ya no es válido.">
-        <div className="space-y-4">
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-center">
-            <ShieldAlert className="mx-auto size-6 text-red-200" />
-            <p className="mt-3 text-sm leading-6 text-red-100/80">{linkError}</p>
-          </div>
-          <Link
-            href="/forgot-password"
-            className="arena-btn flex w-full items-center justify-center"
-          >
-            Pedir un enlace nuevo
-          </Link>
-          <Link href="/login" className="flex items-center justify-center gap-2 text-sm text-neutral-400 transition hover:text-white">
-            <ArrowLeft className="size-4" />
-            Volver al inicio de sesión
-          </Link>
-        </div>
+      <AuthFormWrapper
+        title="Ingresá el código"
+        subtitle={linkHint || "Usá el código de 6 dígitos del correo para no volver a pedir el enlace."}
+      >
+        <RecoveryCodeForm
+          defaultEmail={recoveryEmail}
+          onVerified={() => {
+            setNeedsCode(false);
+            setLinkHint(null);
+          }}
+        />
+        <Link href="/forgot-password" className="mt-4 block text-center text-sm font-medium text-arena transition hover:text-white">
+          Pedir un correo nuevo
+        </Link>
+        <Link href="/login" className="mt-3 flex items-center justify-center gap-2 text-sm text-neutral-400 transition hover:text-white">
+          <ArrowLeft className="size-4" />
+          Volver al inicio de sesión
+        </Link>
       </AuthFormWrapper>
     );
   }

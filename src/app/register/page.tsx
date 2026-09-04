@@ -13,7 +13,9 @@ import { assertPlayableFreeFireAccount } from "@/lib/free-fire/guard";
 import { getFreeFireAvatarUrl, type CommunityPlayerInfo } from "@/lib/free-fire/providers/community-api-provider";
 import { normalizeFreeFireRegion } from "@/lib/free-fire/regions";
 import { persistFreeFireSnapshot } from "@/lib/player-stats";
+import { getAuthRedirectUrl } from "@/lib/site-url";
 import { isDuplicateUidError } from "@/lib/profile";
+import { translateAuthError } from "@/lib/auth-recovery";
 import { supabase } from "@/lib/supabase";
 
 const inputClass =
@@ -61,15 +63,25 @@ export default function RegisterPage() {
       email,
       password,
       options: {
+        emailRedirectTo: getAuthRedirectUrl("/dashboard"),
         data: {
           freefire_uid: freefireUid.trim(),
+          freefire_region: normalizeFreeFireRegion(freefireRegion),
+          nickname: verifiedPlayer.nickname?.trim() || email.split("@")[0],
+          avatar_url: getFreeFireAvatarUrl(verifiedPlayer.avatarId),
           provider: "email",
         },
       },
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      setError(translateAuthError(signUpError.message));
+      setLoading(false);
+      return;
+    }
+
+    if (!data.session) {
+      setSuccess("Cuenta creada. Revisá el correo para confirmarla y después iniciá sesión.");
       setLoading(false);
       return;
     }
@@ -123,7 +135,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthFormWrapper title="Crear cuenta" subtitle="Validamos tu UID de Free Fire y después entras con correo o Google.">
+    <AuthFormWrapper title="Crear cuenta" subtitle="Validamos tu UID de Free Fire y después entras con correo.">
       <form onSubmit={handleRegister} className="space-y-4">
         {error && <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
         {success && (
@@ -149,6 +161,7 @@ export default function RegisterPage() {
           }}
           onPlayerLoaded={(info) => setVerifiedPlayer(info)}
           inputClassName={inputClass}
+          preview="nickname"
         />
 
         <label className="space-y-1.5">
@@ -200,7 +213,7 @@ export default function RegisterPage() {
 
         <p className="pt-1 text-center text-sm text-neutral-500">
           ¿Ya tenés cuenta?{" "}
-          <Link href="/login" className="font-bold text-orange-300 transition hover:text-orange-200">
+          <Link href="/login" className="font-bold text-arena transition hover:text-white">
             Iniciá sesión
           </Link>
         </p>
